@@ -4,59 +4,64 @@ use printpdf::html;
 use printpdf::*;
 use std::collections::BTreeMap;
 use std::fs;
-use syntect::highlighting::{Color, ThemeSet};
+use std::io::BufRead;
+use syntect::easy::HighlightFile;
+use syntect::highlighting::{Color, Highlighter, Style, ThemeSet};
 use syntect::html::highlighted_html_for_file;
 use syntect::parsing::SyntaxSet;
+use syntect::util::as_24_bit_terminal_escaped;
 fn main() {
+    // let args: Vec<String> = std::env::args().collect();
+    // if args.len() < 2 {
+    //     println!("Please pass in a file to highlight");
+    //     return;
+    // }
+
     let ss = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
 
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 2 {
-        println!("Please pass in a file to highlight");
-        return;
-    }
+    let mut highlighter =
+        HighlightFile::new("./hello.js", &ss, &ts.themes["InspiredGitHub"]).unwrap();
+    let mut lines= String::new();
+    let mut line = String::new();
+    while highlighter.reader.read_line(&mut line).unwrap() > 0 {
+        {
+            let regions: Vec<(Style, &str)> = highlighter
+                .highlight_lines
+                .highlight_line(&line, &ss)
+                .unwrap();
+						dbg!(&regions);
+            lines += &format!("{}", as_24_bit_terminal_escaped(&regions[..], true));
 
-    let style = "
-        pre {
-            font-size:13px;
-            font-family: Consolas, \"Liberation Mono\", Menlo, Courier, monospace;
-        }";
-    println!("<head><title>{}</title></head>", &args[1]);
-    let theme = &ts.themes["base16-ocean.dark"];
-    let c = theme.settings.background.unwrap_or(Color::WHITE);
-    println!(
-        "<body style=\"background-color:#{:02x}{:02x}{:02x};\">\n",
-        c.r, c.g, c.b
-    );
-    let html = highlighted_html_for_file(&args[1], &ss, theme)
-        .unwrap()
-        .replace("<pre style=\"background-color:#2b303b;\">", "")
-        .replace("</pre>", "")
-        .replace("span", "div");
-    println!("{}", html);
-    println!("</body>");
-    let options = XmlRenderOptions {
-        // named images to be used in the HTML, i.e. ["image1.png" => DecodedImage(image1_bytes)]
-        images: BTreeMap::new(),
-        // named fonts to be used in the HTML, i.e. ["Roboto" => DecodedImage(roboto_bytes)]
-        fonts: BTreeMap::new(),
-        // default page width, printpdf will auto-page-break
-        page_width: Mm(210.0),
-        // default page height
-        page_height: Mm(297.0),
-        components: vec![],
-    };
-    let mut warnings = vec![];
-    let pages = PdfDocument::new("Yes")
-        .html_to_pages(&html, options, &mut warnings)
-        .unwrap();
-    let pdf_bytes = PdfDocument::new("My PDF")
-        .with_pages(pages)
-        .save(&PdfSaveOptions::default(), &mut warnings);
-    // let pdf_bytes = PdfDocument::new("My PDF")
-    //     .with_html(html, &options)
-    //     .unwrap()
-    //     .save(&PdfSaveOptions::default());
+        } // until NLL this scope is needed so we can clear the buffer after
+        line.clear(); // read_line appends so we need to clear between lines
+    }
+		print!("{}", &lines);
+    // Clear the formatting
+    println!("\x1b[0m");
+    let page_dimensions: (f32, f32) = (210.0, 297.0);
+    let mut doc = PdfDocument::new("My first PDF");
+    let roboto_bytes = include_bytes!("../fonts/Helvetica.ttf");
+    let font = ParsedFont::from_bytes(roboto_bytes, 33, &mut vec![]).unwrap();
+    let font_id = doc.add_font(&font);
+    let text_pos = Point {
+        x: Mm(10.0).into(),
+        y: Mm(page_dimensions.1 - 20.0).into(),
+    }; // from bottom left
+    let page1_contents = vec![
+        Op::SetLineHeight { lh: Pt(33.0) },
+        // Op::SetWordSpacing { pt: Pt(1000.0) },
+        // Op::SetCharacterSpacing { multiplier: 10.0 },
+        Op::SetTextCursor { pos: text_pos },
+        Op::WriteText {
+            items: vec![TextItem::Text(lines)],
+            size: Pt(33.0),
+            font: font_id,
+        },
+    ];
+    let page1 = PdfPage::new(Mm(page_dimensions.0), Mm(page_dimensions.1), page1_contents);
+    let pdf_bytes: Vec<u8> = doc
+        .with_pages(vec![page1])
+        .save(&PdfSaveOptions::default(), &mut vec![]);
     fs::write("./hello.pdf", pdf_bytes);
 }

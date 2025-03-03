@@ -1,0 +1,8 @@
+[package]
+name = "code-to-pdf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+printpdf = { git = "https://github.com/fschutt/printpdf", features = ["html"] }
+syntect = "5.2.0"

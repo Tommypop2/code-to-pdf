@@ -40,11 +40,12 @@ fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: PathBuf
     ]
 }
 fn main() {
-    // let args: Vec<String> = std::env::args().collect();
-    // if args.len() < 2 {
-    //     println!("Please pass in a file to highlight");
-    //     return;
-    // }
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() < 2 {
+        println!("Please pass in a path!");
+        return;
+    }
+    let path = args[1].clone();
     let page_dimensions: (f32, f32) = (210.0, 297.0);
     let mut doc = PdfDocument::new("Project Code");
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
@@ -54,7 +55,7 @@ fn main() {
     let ss = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let mut pages: Vec<PdfPage> = vec![];
-    for result in Walk::new("./test_folder") {
+    for result in Walk::new(path) {
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {

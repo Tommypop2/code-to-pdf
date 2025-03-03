@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+genpdf = "0.2.0"
 printpdf = { git = "https://github.com/fschutt/printpdf", features = ["html"] }
 syntect = "5.2.0"

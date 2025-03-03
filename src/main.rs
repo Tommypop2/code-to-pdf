@@ -36,12 +36,25 @@ fn main() {
         // Op::SetWordSpacing { pt: Pt(1000.0) },
         // Op::SetCharacterSpacing { multiplier: 10.0 },
         Op::SetTextCursor { pos: text_pos },
-        Op::SetFillColor {
-            col: color::Color::Rgb(Rgb { r: 255.0, g: 0.0, b: 0.0, icc_profile: None }),
+        Op::SetTextRenderingMode {
+            mode: TextRenderingMode::Stroke,
         },
-				Op::SetOutlineColor {
-					col: color::Color::Rgb(Rgb { r: 255.0, g: 0.0, b: 0.0, icc_profile: None }),
-			},
+        Op::SetFillColor {
+            col: color::Color::Rgb(Rgb {
+                r: 255.0,
+                g: 0.0,
+                b: 0.0,
+                icc_profile: None,
+            }),
+        },
+        Op::SetOutlineColor {
+            col: color::Color::Rgb(Rgb {
+                r: 255.0,
+                g: 0.0,
+                b: 0.0,
+                icc_profile: None,
+            }),
+        },
     ];
     let mut lines = String::new();
     let mut line = String::new();
@@ -53,6 +66,14 @@ fn main() {
                 .unwrap();
             for r in regions {
                 let (style, text) = r;
+                page_contents.push(Op::SetOutlineColor {
+                    col: color::Color::Rgb(Rgb {
+                        r: style.foreground.r as f32,
+                        g: style.foreground.g as f32,
+                        b: style.foreground.b as f32,
+                        icc_profile: None,
+                    }),
+                });
                 page_contents.push(Op::WriteText {
                     items: vec![TextItem::Text(text.to_owned())],
                     size: Pt(12.0),

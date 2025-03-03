@@ -82,7 +82,6 @@ fn main() {
             Err(err) => println!("ERROR: {}", err),
         }
     }
-
     let pdf_bytes: Vec<u8> = doc
         .with_pages(pages)
         .save(&PdfSaveOptions::default(), &mut vec![]);

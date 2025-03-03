@@ -3,6 +3,10 @@ name = "code-to-pdf"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "code-to-pdf"
+path = "src/main.rs"
+
 [dependencies]
 genpdf = "0.2.0"
 ignore = "0.4.23"

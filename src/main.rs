@@ -1,17 +1,11 @@
 //! Prints highlighted HTML for a file to stdout.
 //! Basically just wraps a body around `highlighted_html_for_file`
 use core::f32;
-use printpdf::html;
 use printpdf::*;
-use std::collections::BTreeMap;
 use std::fs;
-use std::io::BufRead;
-use std::path::{Path, PathBuf};
-use syntect::easy::HighlightFile;
-use syntect::highlighting::{Color, Highlighter, Style, ThemeSet};
-use syntect::html::highlighted_html_for_file;
+use std::path::PathBuf;
+use syntect::highlighting::ThemeSet;
 use syntect::parsing::SyntaxSet;
-use syntect::util::as_24_bit_terminal_escaped;
 mod process_file;
 use ignore::Walk;
 use process_file::process_file;

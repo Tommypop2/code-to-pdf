@@ -2,8 +2,8 @@
 //! Basically just wraps a body around `highlighted_html_for_file`
 use core::f32;
 use printpdf::*;
-use std::fs;
 use std::path::PathBuf;
+use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
 use syntect::parsing::SyntaxSet;
 mod process_file;
@@ -24,15 +24,32 @@ fn main() {
     let font_id = doc.add_font(&font);
     // Highlighting stuff
     // let ss = SyntaxSet::load_defaults_newlines();
-		let ss = two_face::syntax::extra_newlines();
+    let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
     let mut pages: Vec<PdfPage> = vec![];
-    for result in WalkBuilder::new(path).add_custom_ignore_filename("pnpm-lock.yaml").build() {
+    for result in WalkBuilder::new(path)
+        .sort_by_file_path(|x, y| {
+            {if x.is_dir() && !y.is_dir() {
+                Ordering::Less
+            } else if y.is_dir() && !x.is_dir() {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }}.reverse()
+        })
+        .build()
+    {
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {
                     // dbg!(entry.path());
-
+                    if entry
+                        .path()
+                        .to_str()
+                        .is_some_and(|f| f.contains("pnpm-lock") || f.contains(".txt"))
+                    {
+                        continue;
+                    }
                     let res = process_file(
                         &ss,
                         &ts,

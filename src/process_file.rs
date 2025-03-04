@@ -23,11 +23,15 @@ fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
 pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: PathBuf) -> Vec<Op> {
     vec![
         Op::SetLineHeight { lh: Pt(14.0) },
+        Op::SetFontSize {
+            size: Pt(12.0),
+            font: font_id.clone(),
+        },
         // Write metadata
         Op::SetTextCursor {
             pos: Point {
                 x: Mm(10.0).into(),
-                y: Mm(page_dimensions.1 - 5.0).into(),
+                y: Mm(page_dimensions.1 - 7.5).into(),
             },
         },
         Op::WriteText {
@@ -46,10 +50,6 @@ pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: Pat
         },
         Op::SetTextRenderingMode {
             mode: TextRenderingMode::Stroke,
-        },
-        Op::SetFontSize {
-            size: Pt(12.0),
-            font: font_id,
         },
     ]
 }
@@ -80,7 +80,8 @@ pub fn process_file(
                     Mm(page_dimensions.1),
                     page_contents,
                 ));
-                page_contents = new_page_contents(page_dimensions, font_id.clone(), file_path.clone());
+                page_contents =
+                    new_page_contents(page_dimensions, font_id.clone(), file_path.clone());
                 line_count = 0;
             }
             // Store the char count for the current line
@@ -140,10 +141,10 @@ pub fn process_file(
         } // until NLL this scope is needed so we can clear the buffer after
         line.clear(); // read_line appends so we need to clear between lines
     }
-		pages.push(PdfPage::new(
-			Mm(page_dimensions.0),
-			Mm(page_dimensions.1),
-			page_contents,
-	));
+    pages.push(PdfPage::new(
+        Mm(page_dimensions.0),
+        Mm(page_dimensions.1),
+        page_contents,
+    ));
     Ok(pages)
 }

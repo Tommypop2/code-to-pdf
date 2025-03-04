@@ -65,13 +65,23 @@ fn main() {
                         font_id.clone(),
                         entry.path().to_path_buf(),
                     );
-                    process_file(
+                    let res = process_file(
                         &ss,
                         &ts,
                         font_id.clone(),
                         &mut page_contents,
                         entry.path().to_path_buf(),
                     );
+                    match res {
+                        Ok(_) => {}
+                        Err(err) => {
+                            println!(
+                                "Processing {} failed",
+                                entry.path().to_str().unwrap_or("unknown")
+                            );
+                            println!("ERROR: {}", err);
+                        }
+                    }
                     pages.push(PdfPage::new(
                         Mm(page_dimensions.0),
                         Mm(page_dimensions.1),

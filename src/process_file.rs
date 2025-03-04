@@ -8,15 +8,27 @@ use syntect::{
     parsing::SyntaxSet,
 };
 static MAX_LINE_LENGTH: usize = 100;
+fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
+    let mut v = vec![];
+    let mut i = 0;
+    while (i + chunk_size) <= slice.len() {
+        v.push(&slice[i..(i + chunk_size)]);
+        i += chunk_size;
+    }
+    v.push(&slice[i..slice.len()]);
+    v
+}
+
 pub fn process_file(
     syntax_set: &SyntaxSet,
     theme_set: &ThemeSet,
     font_id: FontId,
     page_contents: &mut Vec<Op>,
     file_path: PathBuf,
-) {
+) -> std::io::Result<()> {
     let mut highlighter =
-        HighlightFile::new(file_path, &syntax_set, &theme_set.themes["InspiredGitHub"]).unwrap();
+        HighlightFile::new(file_path, &syntax_set, &theme_set.themes["InspiredGitHub"])?;
+
     let mut line = String::new();
     while highlighter.reader.read_line(&mut line).unwrap() > 0 {
         {
@@ -59,12 +71,7 @@ pub fn process_file(
                     });
                 } else {
                     // Split text into chunks the maximum size of the view
-                    let chunks = text
-                        .as_bytes()
-                        .chunks(MAX_LINE_LENGTH)
-                        .map(str::from_utf8)
-                        .collect::<Result<Vec<&str>, _>>()
-                        .unwrap();
+                    let chunks = split_into_chunks(text, 100);
                     let mut first = true;
                     for c in chunks {
                         if !first {
@@ -84,4 +91,5 @@ pub fn process_file(
         } // until NLL this scope is needed so we can clear the buffer after
         line.clear(); // read_line appends so we need to clear between lines
     }
+    Ok(())
 }

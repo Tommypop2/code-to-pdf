@@ -384,6 +384,7 @@ dependencies = [
  "ignore",
  "printpdf 0.8.0",
  "syntect",
+ "two-face",
 ]
 
 [[package]]
@@ -2438,6 +2439,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5be21190ff5d38e8b4a2d3b6a3ae57f612cc39c96e83cedeaf7abc338a8bac4a"
 dependencies = [
  "core_maths",
+]
+
+[[package]]
+name = "two-face"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "384eda438ddf62e2c6f39a174452d952d9d9df5a8ad5ade22198609f8dcaf852"
+dependencies = [
+ "once_cell",
+ "serde",
+ "syntect",
 ]
 
 [[package]]

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use syntect::highlighting::ThemeSet;
 use syntect::parsing::SyntaxSet;
 mod process_file;
-use ignore::Walk;
+use ignore::{Walk, WalkBuilder};
 use process_file::{new_page_contents, process_file};
 
 fn main() {
@@ -23,10 +23,11 @@ fn main() {
     let font = ParsedFont::from_bytes(helvetica_bytes, 33, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
     // Highlighting stuff
-    let ss = SyntaxSet::load_defaults_newlines();
+    // let ss = SyntaxSet::load_defaults_newlines();
+		let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
     let mut pages: Vec<PdfPage> = vec![];
-    for result in Walk::new(path) {
+    for result in WalkBuilder::new(path).add_custom_ignore_filename("pnpm-lock.yaml").build() {
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {

@@ -68,7 +68,6 @@ pub fn process_file(
 
     let mut line = String::new();
     let mut pages: Vec<PdfPage> = vec![];
-    let mut page_ind: usize = 0;
     let mut page_contents = new_page_contents(page_dimensions, font_id.clone(), file_path.clone());
     let mut line_count = 0;
     while highlighter.reader.read_line(&mut line).unwrap() > 0 {

@@ -8,37 +8,8 @@ use syntect::highlighting::ThemeSet;
 use syntect::parsing::SyntaxSet;
 mod process_file;
 use ignore::Walk;
-use process_file::process_file;
-fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: PathBuf) -> Vec<Op> {
-    vec![
-        Op::SetLineHeight { lh: Pt(14.0) },
-        // Write metadata
-        Op::SetTextCursor {
-            pos: Point {
-                x: Mm(10.0).into(),
-                y: Mm(page_dimensions.1 - 5.0).into(),
-            },
-        },
-        Op::WriteText {
-            items: vec![TextItem::Text(path.to_str().unwrap().to_owned())],
-            size: Pt(12.0),
-            font: font_id,
-        },
-        // This allows me to reset the text cursor for some reason
-        Op::SetTextMatrix {
-            matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
-        },
-        Op::SetTextCursor {
-            pos: Point {
-                x: Mm(10.0).into(),
-                y: Mm(page_dimensions.1 - 20.0).into(),
-            },
-        },
-        Op::SetTextRenderingMode {
-            mode: TextRenderingMode::Stroke,
-        },
-    ]
-}
+use process_file::{new_page_contents, process_file};
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -60,20 +31,20 @@ fn main() {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {
                     // dbg!(entry.path());
-                    let mut page_contents = new_page_contents(
-                        page_dimensions,
-                        font_id.clone(),
-                        entry.path().to_path_buf(),
-                    );
+
                     let res = process_file(
                         &ss,
                         &ts,
                         font_id.clone(),
-                        &mut page_contents,
                         entry.path().to_path_buf(),
+                        page_dimensions,
                     );
                     match res {
-                        Ok(_) => {}
+                        Ok(ps) => {
+                            for p in ps {
+                                pages.push(p);
+                            }
+                        }
                         Err(err) => {
                             println!(
                                 "Processing {} failed",
@@ -82,11 +53,11 @@ fn main() {
                             println!("ERROR: {}", err);
                         }
                     }
-                    pages.push(PdfPage::new(
-                        Mm(page_dimensions.0),
-                        Mm(page_dimensions.1),
-                        page_contents,
-                    ));
+                    // pages.push(PdfPage::new(
+                    //     Mm(page_dimensions.0),
+                    //     Mm(page_dimensions.1),
+                    //     page_contents,
+                    // ));
                 }
             }
             Err(err) => println!("ERROR: {}", err),

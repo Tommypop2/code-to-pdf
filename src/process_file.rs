@@ -49,7 +49,7 @@ pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: Pat
             },
         },
         Op::SetTextRenderingMode {
-            mode: TextRenderingMode::Stroke,
+            mode: TextRenderingMode::Fill,
         },
     ]
 }

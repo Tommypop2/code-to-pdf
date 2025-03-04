@@ -1550,7 +1550,7 @@ dependencies = [
 [[package]]
 name = "printpdf"
 version = "0.8.0"
-source = "git+https://github.com/fschutt/printpdf#ac372c67a1b232d834ed38b969a4094acbda235e"
+source = "git+https://github.com/fschutt/printpdf#dacdbbe99c29ac1a15e123f1c02fa7247fded31b"
 dependencies = [
  "allsorts",
  "azul-core",

@@ -29,13 +29,16 @@ fn main() {
     let mut pages: Vec<PdfPage> = vec![];
     for result in WalkBuilder::new(path)
         .sort_by_file_path(|x, y| {
-            {if x.is_dir() && !y.is_dir() {
-                Ordering::Less
-            } else if y.is_dir() && !x.is_dir() {
-                Ordering::Greater
-            } else {
-                Ordering::Equal
-            }}.reverse()
+            {
+                if x.is_dir() && !y.is_dir() {
+                    Ordering::Less
+                } else if y.is_dir() && !x.is_dir() {
+                    Ordering::Greater
+                } else {
+                    Ordering::Equal
+                }
+            }
+            .reverse()
         })
         .build()
     {
@@ -84,5 +87,5 @@ fn main() {
     let pdf_bytes: Vec<u8> = doc
         .with_pages(pages)
         .save(&PdfSaveOptions::default(), &mut vec![]);
-    fs::write("./hello.pdf", pdf_bytes).unwrap();
+    fs::write("./output.pdf", pdf_bytes).unwrap();
 }

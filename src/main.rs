@@ -2,13 +2,11 @@
 //! Basically just wraps a body around `highlighted_html_for_file`
 use core::f32;
 use printpdf::*;
-use std::path::PathBuf;
 use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
-use syntect::parsing::SyntaxSet;
 mod process_file;
-use ignore::{Walk, WalkBuilder};
-use process_file::{new_page_contents, process_file};
+use ignore::WalkBuilder;
+use process_file::process_file;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

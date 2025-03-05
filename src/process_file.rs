@@ -62,7 +62,7 @@ pub fn process_file(
 ) -> std::io::Result<Vec<PdfPage>> {
     let mut highlighter = HighlightFile::new(
         file_path.clone(),
-        &syntax_set,
+        syntax_set,
         &theme_set.themes["InspiredGitHub"],
     )?;
 
@@ -88,7 +88,7 @@ pub fn process_file(
             let mut count_size_line_break = 0;
             let regions: Vec<(Style, &str)> = highlighter
                 .highlight_lines
-                .highlight_line(&line, &syntax_set)
+                .highlight_line(&line, syntax_set)
                 .unwrap();
             for r in regions {
                 let (style, text) = r;

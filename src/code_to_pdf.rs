@@ -11,7 +11,7 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::process_file::{new_page_contents, split_into_chunks};
+use crate::helpers::{new_page_contents, split_into_chunks};
 static MAX_LINE_LENGTH: usize = 100;
 
 pub struct CodeToPdf {

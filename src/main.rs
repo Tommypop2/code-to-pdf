@@ -4,7 +4,7 @@ use core::f32;
 use printpdf::*;
 use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
-mod process_file;
+mod helpers;
 use ignore::WalkBuilder;
 mod code_to_pdf;
 use code_to_pdf::CodeToPdf;

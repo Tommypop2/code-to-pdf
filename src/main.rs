@@ -7,7 +7,8 @@ use syntect::highlighting::ThemeSet;
 mod process_file;
 use ignore::WalkBuilder;
 use process_file::process_file;
-
+mod code_to_pdf;
+use code_to_pdf::CodeToPdf;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -24,8 +25,7 @@ fn main() {
     // let ss = SyntaxSet::load_defaults_newlines();
     let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
-    let mut pages: Vec<PdfPage> = vec![];
-    for result in WalkBuilder::new(path)
+    let walker = WalkBuilder::new(path)
         .sort_by_file_path(|x, y| {
             {
                 if x.is_dir() && !y.is_dir() {
@@ -38,52 +38,11 @@ fn main() {
             }
             .reverse()
         })
-        .build()
-    {
-        match result {
-            Ok(entry) => {
-                if entry.file_type().is_some_and(|f| f.is_file()) {
-                    // dbg!(entry.path());
-                    if entry
-                        .path()
-                        .to_str()
-                        .is_some_and(|f| f.contains("pnpm-lock") || f.contains(".txt"))
-                    {
-                        continue;
-                    }
-                    let res = process_file(
-                        &ss,
-                        &ts,
-                        font_id.clone(),
-                        entry.path().to_path_buf(),
-                        page_dimensions,
-                    );
-                    match res {
-                        Ok(ps) => {
-                            for p in ps {
-                                pages.push(p);
-                            }
-                        }
-                        Err(err) => {
-                            println!(
-                                "Processing {} failed",
-                                entry.path().to_str().unwrap_or("unknown")
-                            );
-                            println!("ERROR: {}", err);
-                        }
-                    }
-                    // pages.push(PdfPage::new(
-                    //     Mm(page_dimensions.0),
-                    //     Mm(page_dimensions.1),
-                    //     page_contents,
-                    // ));
-                }
-            }
-            Err(err) => println!("ERROR: {}", err),
-        }
-    }
+        .build();
+    let mut c2pdf = CodeToPdf::new(ss, ts, font_id, page_dimensions);
+    c2pdf.process_files(walker);
     let pdf_bytes: Vec<u8> = doc
-        .with_pages(pages)
+        .with_pages(c2pdf.pages)
         .save(&PdfSaveOptions::default(), &mut vec![]);
     fs::write("./output.pdf", pdf_bytes).unwrap();
 }

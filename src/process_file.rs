@@ -10,7 +10,7 @@ use syntect::{
     parsing::SyntaxSet,
 };
 static MAX_LINE_LENGTH: usize = 100;
-fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
+pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
     let mut v = vec![];
     let mut i = 0;
     while (i + chunk_size) <= slice.len() {

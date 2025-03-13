@@ -8,7 +8,6 @@ name = "code-to-pdf"
 path = "src/main.rs"
 
 [dependencies]
-genpdf = "0.2.0"
 ignore = "0.4.23"
 printpdf = { git = "https://github.com/fschutt/printpdf", features = ["html"] }
 syntect = "5.2.0"

@@ -16,6 +16,10 @@ struct Arguments {
     /// the path to walk for files to highlight
     #[argh(positional)]
     walk_path: String,
+
+    /// path to output PDF to
+    #[argh(option, default = "String::from(\"output.pdf\")")]
+    out: String,
 }
 fn main() {
     // let args: Vec<String> = std::env::args().collect();
@@ -34,9 +38,11 @@ fn main() {
         .overrides({
             let mut builder = OverrideBuilder::new(path);
             builder.add("!pnpm-lock.yaml").unwrap();
-						builder.add("!Cargo.lock").unwrap();
+            builder.add("!Cargo.lock").unwrap();
             builder.build().unwrap()
         })
+        // Ensure that files are given higher precidence than folders
+        // (want files in a folder to be printed breadth-first)
         .sort_by_file_path(|x, y| {
             {
                 if x.is_dir() && !y.is_dir() {
@@ -55,6 +61,6 @@ fn main() {
     let pdf_bytes: Vec<u8> = doc
         .with_pages(c2pdf.get_pages())
         .save(&PdfSaveOptions::default(), &mut vec![]);
-    fs::write("./output.pdf", pdf_bytes).unwrap();
+    fs::write(args.out, pdf_bytes).unwrap();
     println!("Done!");
 }

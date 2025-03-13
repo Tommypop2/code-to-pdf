@@ -80,6 +80,7 @@ impl CodeToPdf {
             page_contents.push(Op::AddLineBreak);
             line.clear();
         }
+				// Only push new page if text has been added to it
         if has_added_text {
             Some(PdfPage::new(
                 printpdf::Mm(self.page_dimensions.0),
@@ -103,6 +104,7 @@ impl CodeToPdf {
         }
         Ok(())
     }
+		/// Consumes entire walker
     pub fn process_files(&mut self, walker: Walk) {
         for result in walker {
             match result {

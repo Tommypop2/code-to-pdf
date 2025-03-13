@@ -5,7 +5,7 @@ use printpdf::*;
 use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
 mod helpers;
-use ignore::WalkBuilder;
+use ignore::{overrides::OverrideBuilder, WalkBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
 use code_to_pdf::CodeToPdf;
@@ -30,7 +30,13 @@ fn main() {
     // let ss = SyntaxSet::load_defaults_newlines();
     let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
-    let walker = WalkBuilder::new(path)
+    let walker = WalkBuilder::new(path.clone())
+        .overrides({
+            let mut builder = OverrideBuilder::new(path);
+            builder.add("!pnpm-lock.yaml").unwrap();
+						builder.add("!Cargo.lock").unwrap();
+            builder.build().unwrap()
+        })
         .sort_by_file_path(|x, y| {
             {
                 if x.is_dir() && !y.is_dir() {

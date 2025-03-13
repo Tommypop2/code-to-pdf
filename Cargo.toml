@@ -10,6 +10,6 @@ path = "src/main.rs"
 [dependencies]
 argh = "0.1.13"
 ignore = "0.4.23"
-printpdf = { git = "https://github.com/fschutt/printpdf", features = ["html"] }
+printpdf = { git = "https://github.com/fschutt/printpdf" }
 syntect = "5.2.0"
 two-face = "0.4.3"

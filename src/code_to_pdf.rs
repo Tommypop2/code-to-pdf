@@ -97,7 +97,7 @@ impl CodeToPdf {
             &self.syntax_set,
             &self.theme_set.themes["InspiredGitHub"],
         )?;
-        println!("Generating pages for {:?}", file);
+        println!("Generating pages for {}", file.display());
         while let Some(page) = self.generate_page(&mut highlighter, file.clone()) {
             self.pages.push(page)
         }

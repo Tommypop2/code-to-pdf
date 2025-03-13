@@ -1,9 +1,7 @@
 use core::str;
 use std::path::PathBuf;
 
-use printpdf::{
-    FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode,
-};
+use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode};
 pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
     let mut v = vec![];
     let mut i = 0;
@@ -29,7 +27,7 @@ pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: Pat
             },
         },
         Op::WriteText {
-            items: vec![TextItem::Text(path.to_str().unwrap().to_owned())],
+            items: vec![TextItem::Text(path.display().to_string())],
             font: font_id.clone(),
         },
         // This allows me to reset the text cursor for some reason

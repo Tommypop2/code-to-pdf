@@ -7,14 +7,20 @@ use syntect::highlighting::ThemeSet;
 mod helpers;
 use ignore::WalkBuilder;
 mod code_to_pdf;
+use argh::FromArgs;
 use code_to_pdf::CodeToPdf;
+
+#[derive(FromArgs)]
+/// Command line arguments
+struct Arguments {
+    /// the path to walk for files to highlight
+    #[argh(positional)]
+    walk_path: String,
+}
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 2 {
-        println!("Please pass in a path!");
-        return;
-    }
-    let path = args[1].clone();
+    // let args: Vec<String> = std::env::args().collect();
+    let args: Arguments = argh::from_env();
+    let path = args.walk_path;
     let page_dimensions: (f32, f32) = (210.0, 297.0);
     let mut doc = PdfDocument::new("Project Code");
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");

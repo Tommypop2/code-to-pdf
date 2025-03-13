@@ -44,4 +44,5 @@ fn main() {
         .with_pages(c2pdf.get_pages())
         .save(&PdfSaveOptions::default(), &mut vec![]);
     fs::write("./output.pdf", pdf_bytes).unwrap();
+    println!("Done!");
 }

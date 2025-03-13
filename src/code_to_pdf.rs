@@ -1,7 +1,4 @@
-use std::{
-    io::BufRead,
-    path::PathBuf,
-};
+use std::{io::BufRead, path::PathBuf};
 
 use ignore::Walk;
 use printpdf::{color, FontId, Op, PdfPage, TextItem};
@@ -15,7 +12,7 @@ use crate::helpers::{new_page_contents, split_into_chunks};
 static MAX_LINE_LENGTH: usize = 100;
 
 pub struct CodeToPdf {
-    pub pages: Vec<PdfPage>,
+    pages: Vec<PdfPage>,
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
     font_id: FontId,
@@ -80,7 +77,7 @@ impl CodeToPdf {
             if line_count > 54 {
                 break;
             }
-						page_contents.push(Op::AddLineBreak);
+            page_contents.push(Op::AddLineBreak);
             line.clear();
         }
         if has_added_text {
@@ -93,14 +90,15 @@ impl CodeToPdf {
             None
         }
     }
+    /// Generates pages for a file
     pub fn process_file(&mut self, file: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         let mut highlighter = HighlightFile::new(
             file.clone(),
             &self.syntax_set,
             &self.theme_set.themes["InspiredGitHub"],
         )?;
+        println!("Generating pages for {:?}", file);
         while let Some(page) = self.generate_page(&mut highlighter, file.clone()) {
-            println!("Generating page for {:?}", file);
             self.pages.push(page)
         }
         Ok(())
@@ -132,5 +130,9 @@ impl CodeToPdf {
             font_id,
             page_dimensions,
         }
+    }
+    /// Consumes the instance and returns the pages Vec
+    pub fn get_pages(self) -> Vec<PdfPage> {
+        self.pages
     }
 }

@@ -41,7 +41,7 @@ fn main() {
     let mut c2pdf = CodeToPdf::new(ss, ts, font_id, page_dimensions);
     c2pdf.process_files(walker);
     let pdf_bytes: Vec<u8> = doc
-        .with_pages(c2pdf.pages)
+        .with_pages(c2pdf.get_pages())
         .save(&PdfSaveOptions::default(), &mut vec![]);
     fs::write("./output.pdf", pdf_bytes).unwrap();
 }

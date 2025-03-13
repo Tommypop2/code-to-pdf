@@ -1,14 +1,13 @@
 use std::{
-    fs::File,
-    io::{BufRead, BufReader},
+    io::BufRead,
     path::PathBuf,
 };
 
 use ignore::Walk;
 use printpdf::{color, FontId, Op, PdfPage, TextItem};
 use syntect::{
-    easy::{HighlightFile, HighlightLines},
-    highlighting::{Highlighter, Style, ThemeSet},
+    easy::HighlightFile,
+    highlighting::{Style, ThemeSet},
     parsing::SyntaxSet,
 };
 

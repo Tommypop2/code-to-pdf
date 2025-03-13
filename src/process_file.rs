@@ -1,15 +1,9 @@
 use core::str;
-use std::{io::BufRead, path::PathBuf};
+use std::path::PathBuf;
 
 use printpdf::{
-    color, FontId, Mm, Op, PdfPage, Point, Pt, Rgb, TextItem, TextMatrix, TextRenderingMode,
+    FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode,
 };
-use syntect::{
-    easy::HighlightFile,
-    highlighting::{Style, ThemeSet},
-    parsing::SyntaxSet,
-};
-static MAX_LINE_LENGTH: usize = 100;
 pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
     let mut v = vec![];
     let mut i = 0;

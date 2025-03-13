@@ -6,7 +6,6 @@ use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
 mod process_file;
 use ignore::WalkBuilder;
-use process_file::process_file;
 mod code_to_pdf;
 use code_to_pdf::CodeToPdf;
 fn main() {

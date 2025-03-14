@@ -10,15 +10,17 @@ use syntect::{
 
 use crate::helpers::{init_page, split_into_chunks};
 static MAX_LINE_LENGTH: usize = 100;
-pub struct HighlighterData {
+pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
+    max_line_len_to_highlight: usize,
 }
-impl HighlighterData {
+impl HighlighterConfig {
     pub fn new(syntax_set: SyntaxSet, theme_set: ThemeSet) -> Self {
         Self {
             syntax_set,
             theme_set,
+            max_line_len_to_highlight: 20_000,
         }
     }
 }
@@ -45,7 +47,7 @@ impl CodeToPdf {
         &mut self,
         highlighter: &mut HighlightFile,
         path: PathBuf,
-        highlighter_data: &HighlighterData,
+        highlighter_data: &HighlighterConfig,
     ) -> Option<PdfPage> {
         let mut line = String::new();
         let mut line_count = 0;
@@ -111,6 +113,17 @@ impl CodeToPdf {
                             items: vec![TextItem::Text(c.to_owned())],
                             font: self.font_id.clone(),
                         });
+                        line_count += 1;
+                        if line_count > 54 {
+                            self.new_page();
+                            init_page(
+                                &mut self.current_page_contents,
+                                self.page_dimensions,
+                                self.font_id.clone(),
+                                path.clone(),
+                            );
+                            line_count = 0;
+                        }
                     }
                 }
             }
@@ -150,7 +163,7 @@ impl CodeToPdf {
     pub fn process_file(
         &mut self,
         file: PathBuf,
-        highlighter_data: &HighlighterData,
+        highlighter_data: &HighlighterConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut highlighter = HighlightFile::new(
             file.clone(),
@@ -166,7 +179,7 @@ impl CodeToPdf {
         Ok(())
     }
     /// Consumes entire walker
-    pub fn process_files(&mut self, walker: Walk, highlighter_data: HighlighterData) {
+    pub fn process_files(&mut self, walker: Walk, highlighter_data: HighlighterConfig) {
         for result in walker {
             match result {
                 Ok(entry) => {

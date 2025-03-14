@@ -8,7 +8,7 @@ mod helpers;
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
-use code_to_pdf::{CodeToPdf, HighlighterData};
+use code_to_pdf::{CodeToPdf, HighlighterConfig};
 use std::time::Instant;
 
 #[derive(FromArgs)]
@@ -59,9 +59,9 @@ fn main() {
         })
         .build();
     let mut c2pdf = CodeToPdf::new(font_id, page_dimensions);
-    let highlighter_data = HighlighterData::new(ss, ts);
+    let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
-    c2pdf.process_files(walker, highlighter_data);
+    c2pdf.process_files(walker, highlighter_config);
     let pages = c2pdf.get_pages();
     let num_pages = pages.len();
     let pdf_bytes: Vec<u8> = doc

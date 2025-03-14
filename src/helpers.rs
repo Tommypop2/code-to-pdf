@@ -8,9 +8,8 @@ use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMod
 fn index_close_to_chunk(slice: &str, i: usize, chunk_size: usize) -> (&str, usize) {
     let mut actual_chunk_size: usize = chunk_size;
     loop {
-        match slice.get(i..(i + actual_chunk_size)) {
-            Some(s) => return (s, actual_chunk_size),
-            None => {}
+        if let Some(s) = slice.get(i..(i + actual_chunk_size)) {
+            return (s, actual_chunk_size);
         };
         actual_chunk_size -= 1;
     }

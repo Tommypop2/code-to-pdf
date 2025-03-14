@@ -1,4 +1,4 @@
-use std::{io::BufRead, mem, path::PathBuf};
+use std::{io::BufRead, path::PathBuf};
 
 use ignore::Walk;
 use printpdf::{color, FontId, Op, PdfPage, TextItem};
@@ -33,7 +33,7 @@ pub struct CodeToPdf {
 impl CodeToPdf {
     /// Create new PdfPage with `current_page_contents` and reset `current_page_contents`
     fn new_page(&mut self) {
-        let contents = mem::replace(&mut self.current_page_contents, vec![]);
+        let contents = std::mem::take(&mut self.current_page_contents);
         let page = PdfPage::new(
             printpdf::Mm(self.page_dimensions.0),
             printpdf::Mm(self.page_dimensions.1),
@@ -47,7 +47,7 @@ impl CodeToPdf {
         &mut self,
         highlighter: &mut HighlightFile,
         path: PathBuf,
-        highlighter_data: &HighlighterConfig,
+        highlighter_config: &HighlighterConfig,
     ) -> Option<PdfPage> {
         let mut line = String::new();
         let mut line_count = 0;
@@ -62,21 +62,22 @@ impl CodeToPdf {
             has_added_text = true;
             // Store the char count for the current line
             let mut count_size_line_break = 0;
-            let regions: Vec<(Style, &str)> = if line.len() < 20_000 {
-                highlighter
-                    .highlight_lines
-                    .highlight_line(&line, &highlighter_data.syntax_set)
-                    .unwrap()
-            } else {
-                vec![(
-                    Style {
-                        foreground: Color::BLACK,
-                        background: Color::WHITE,
-                        font_style: syntect::highlighting::FontStyle::default(),
-                    },
-                    &line,
-                )]
-            };
+            let regions: Vec<(Style, &str)> =
+                if line.len() < highlighter_config.max_line_len_to_highlight {
+                    highlighter
+                        .highlight_lines
+                        .highlight_line(&line, &highlighter_config.syntax_set)
+                        .unwrap()
+                } else {
+                    vec![(
+                        Style {
+                            foreground: Color::BLACK,
+                            background: Color::WHITE,
+                            font_style: syntect::highlighting::FontStyle::default(),
+                        },
+                        &line,
+                    )]
+                };
             for (style, text) in regions {
                 count_size_line_break += text.len();
                 // If current line is getting too long, add a line break
@@ -163,29 +164,30 @@ impl CodeToPdf {
     pub fn process_file(
         &mut self,
         file: PathBuf,
-        highlighter_data: &HighlighterConfig,
+        highlighter_config: &HighlighterConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut highlighter = HighlightFile::new(
             file.clone(),
-            &highlighter_data.syntax_set,
-            &highlighter_data.theme_set.themes["InspiredGitHub"],
+            &highlighter_config.syntax_set,
+            &highlighter_config.theme_set.themes["InspiredGitHub"],
         )?;
         println!("Generating pages for {}", file.display());
 
-        while let Some(page) = self.generate_pages(&mut highlighter, file.clone(), highlighter_data)
+        while let Some(page) =
+            self.generate_pages(&mut highlighter, file.clone(), highlighter_config)
         {
             self.pages.push(page)
         }
         Ok(())
     }
     /// Consumes entire walker
-    pub fn process_files(&mut self, walker: Walk, highlighter_data: HighlighterConfig) {
+    pub fn process_files(&mut self, walker: Walk, highlighter_config: HighlighterConfig) {
         for result in walker {
             match result {
                 Ok(entry) => {
                     if entry.file_type().is_some_and(|f| f.is_file()) {
                         if let Err(err) =
-                            self.process_file(entry.path().to_path_buf(), &highlighter_data)
+                            self.process_file(entry.path().to_path_buf(), &highlighter_config)
                         {
                             println!("ERROR: {}", err)
                         }

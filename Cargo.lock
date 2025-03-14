@@ -959,9 +959,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.21.0"
+version = "1.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cde51589ab56b20a6f686b2c68f7a0bd6add753d697abf720d63f8db3ab7b1ad"
+checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
 
 [[package]]
 name = "onig"
@@ -1198,7 +1198,7 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 [[package]]
 name = "printpdf"
 version = "0.8.0"
-source = "git+https://github.com/fschutt/printpdf#c33c0756ac3fd6bf8edfba8d0da47cb1359b97ea"
+source = "git+https://github.com/fschutt/printpdf#a181ed7454194c6cd26bb6c7e353d9704b7b8814"
 dependencies = [
  "allsorts-subset-browser",
  "azul-core",

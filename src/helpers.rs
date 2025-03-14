@@ -33,7 +33,7 @@ pub fn init_page(
     font_id: FontId,
     path: PathBuf,
 ) {
-    contents.append(&mut vec![
+    contents.extend_from_slice(&[
         Op::SetLineHeight { lh: Pt(14.0) },
         Op::SetFontSize {
             size: Pt(12.0),

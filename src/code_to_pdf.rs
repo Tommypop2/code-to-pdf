@@ -104,24 +104,14 @@ impl CodeToPdf {
     }
     /// Generates pages for a file
     pub fn process_file(&mut self, file: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-        let is_file = file.to_str().unwrap().contains("timetable.island.umd.js");
         let mut highlighter = HighlightFile::new(
             file.clone(),
             &self.syntax_set,
             &self.theme_set.themes["InspiredGitHub"],
         )?;
         println!("Generating pages for {}", file.display());
-        if (is_file) {
-            unsafe {
-                std::arch::asm!("int3");
-            }
-        }
+
         while let Some(page) = self.generate_page(&mut highlighter, file.clone()) {
-            if (is_file) {
-                unsafe {
-                    std::arch::asm!("int3");
-                }
-            }
             self.pages.push(page)
         }
         Ok(())

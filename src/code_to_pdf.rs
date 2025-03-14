@@ -25,7 +25,7 @@ impl CodeToPdf {
         let mut line_count = 0;
         let mut page_contents = new_page_contents(self.page_dimensions, self.font_id.clone(), path);
         let mut has_added_text = false;
-        while highlighter.reader.read_line(&mut line).unwrap() > 0 {
+        while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
             // Store the char count for the current line
             let mut count_size_line_break = 0;

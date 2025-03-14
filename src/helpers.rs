@@ -2,12 +2,23 @@ use core::str;
 use std::path::PathBuf;
 
 use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode};
+fn index_close_to_chunk(slice: &str, i: usize, chunk_size: usize) -> (&str, usize) {
+    let mut actual_chunk_size: usize = chunk_size;
+    loop {
+        match slice.get(i..(i + actual_chunk_size)) {
+            Some(s) => return (s, actual_chunk_size),
+            None => {}
+        };
+        actual_chunk_size -= 1;
+    }
+}
 pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
     let mut v = vec![];
     let mut i = 0;
     while (i + chunk_size) <= slice.len() {
-        v.push(&slice[i..(i + chunk_size)]);
-        i += chunk_size;
+        let (sub, actual_chunk_size) = index_close_to_chunk(slice, i, chunk_size);
+        v.push(sub);
+        i += actual_chunk_size;
     }
     v.push(&slice[i..slice.len()]);
     v

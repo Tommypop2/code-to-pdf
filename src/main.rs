@@ -9,6 +9,7 @@ use ignore::{overrides::OverrideBuilder, WalkBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
 use code_to_pdf::CodeToPdf;
+use std::time::Instant;
 
 #[derive(FromArgs)]
 /// Command line arguments
@@ -39,6 +40,7 @@ fn main() {
             let mut builder = OverrideBuilder::new(path);
             builder.add("!pnpm-lock.yaml").unwrap();
             builder.add("!Cargo.lock").unwrap();
+            builder.add("!*.umd.js").unwrap();
             builder.build().unwrap()
         })
         // Ensure that files are given higher precidence than folders
@@ -57,10 +59,18 @@ fn main() {
         })
         .build();
     let mut c2pdf = CodeToPdf::new(ss, ts, font_id, page_dimensions);
+    let start = Instant::now();
     c2pdf.process_files(walker);
+    let pages = c2pdf.get_pages();
+    let num_pages = pages.len();
     let pdf_bytes: Vec<u8> = doc
-        .with_pages(c2pdf.get_pages())
+        .with_pages(pages)
         .save(&PdfSaveOptions::default(), &mut vec![]);
     fs::write(args.out, pdf_bytes).unwrap();
     println!("Done!");
+    println!(
+        "Generated {} pages in {} seconds",
+        num_pages,
+        start.elapsed().as_secs_f32()
+    )
 }

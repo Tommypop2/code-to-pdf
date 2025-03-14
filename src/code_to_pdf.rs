@@ -42,7 +42,7 @@ impl CodeToPdf {
         self.pages.push(page);
     }
 
-    /// Generates a single PdfPage
+    /// Generates all the pages for a file
     fn generate_pages(
         &mut self,
         highlighter: &mut HighlightFile,

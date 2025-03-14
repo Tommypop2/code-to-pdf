@@ -11,6 +11,11 @@ use argh::FromArgs;
 use code_to_pdf::{CodeToPdf, HighlighterConfig};
 use std::time::Instant;
 
+// This makes `FromArgs` happy
+type StringVec = Vec<String>;
+fn vec_from_string(s: &str) -> Result<StringVec, String> {
+    Ok(s.split(",").into_iter().map(str::to_string).collect())
+}
 #[derive(FromArgs)]
 /// Command line arguments
 struct Arguments {
@@ -21,6 +26,9 @@ struct Arguments {
     /// path to output PDF to
     #[argh(option, default = "String::from(\"output.pdf\")")]
     out: String,
+    /// comma separated string of globs to exclude
+    #[argh(option, from_str_fn(vec_from_string))]
+    exclude: StringVec,
 }
 fn main() {
     // let args: Vec<String> = std::env::args().collect();
@@ -40,7 +48,9 @@ fn main() {
             let mut builder = OverrideBuilder::new(path);
             builder.add("!pnpm-lock.yaml").unwrap();
             builder.add("!Cargo.lock").unwrap();
-            // builder.add("!*.umd.js").unwrap();
+            for exclusion in args.exclude {
+                builder.add(&("!".to_string() + &exclusion)).unwrap();
+            }
             builder.build().unwrap()
         })
         // Ensure that files are given higher precidence than folders

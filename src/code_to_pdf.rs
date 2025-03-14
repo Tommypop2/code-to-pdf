@@ -1,4 +1,4 @@
-use std::{io::BufRead, path::PathBuf};
+use std::{io::BufRead, mem, path::PathBuf};
 
 use ignore::Walk;
 use printpdf::{color, FontId, Op, PdfPage, TextItem};
@@ -8,22 +8,53 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::helpers::{new_page_contents, split_into_chunks};
+use crate::helpers::{init_page, split_into_chunks};
 static MAX_LINE_LENGTH: usize = 100;
-
-pub struct CodeToPdf {
-    pages: Vec<PdfPage>,
+pub struct HighlighterData {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
+}
+impl HighlighterData {
+    pub fn new(syntax_set: SyntaxSet, theme_set: ThemeSet) -> Self {
+        Self {
+            syntax_set,
+            theme_set,
+        }
+    }
+}
+pub struct CodeToPdf {
+    current_page_contents: Vec<Op>,
+    pages: Vec<PdfPage>,
     font_id: FontId,
     page_dimensions: (f32, f32),
 }
 impl CodeToPdf {
+    /// Create new PdfPage with `current_page_contents` and reset `current_page_contents`
+    fn new_page(&mut self) {
+        let contents = mem::replace(&mut self.current_page_contents, vec![]);
+        let page = PdfPage::new(
+            printpdf::Mm(self.page_dimensions.0),
+            printpdf::Mm(self.page_dimensions.1),
+            contents,
+        );
+        self.pages.push(page);
+    }
+
     /// Generates a single PdfPage
-    fn generate_page(&self, highlighter: &mut HighlightFile, path: PathBuf) -> Option<PdfPage> {
+    fn generate_pages(
+        &mut self,
+        highlighter: &mut HighlightFile,
+        path: PathBuf,
+        highlighter_data: &HighlighterData,
+    ) -> Option<PdfPage> {
         let mut line = String::new();
         let mut line_count = 0;
-        let mut page_contents = new_page_contents(self.page_dimensions, self.font_id.clone(), path);
+        init_page(
+            &mut self.current_page_contents,
+            self.page_dimensions,
+            self.font_id.clone(),
+            path.clone(),
+        );
         let mut has_added_text = false;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
@@ -32,7 +63,7 @@ impl CodeToPdf {
             let regions: Vec<(Style, &str)> = if line.len() < 20_000 {
                 highlighter
                     .highlight_lines
-                    .highlight_line(&line, &self.syntax_set)
+                    .highlight_line(&line, &highlighter_data.syntax_set)
                     .unwrap()
             } else {
                 vec![(
@@ -48,12 +79,12 @@ impl CodeToPdf {
                 count_size_line_break += text.len();
                 // If current line is getting too long, add a line break
                 if count_size_line_break > MAX_LINE_LENGTH {
-                    page_contents.push(Op::AddLineBreak);
+                    self.current_page_contents.push(Op::AddLineBreak);
                     count_size_line_break = 0;
                 }
                 let text_style = style.foreground;
                 // Set PDF text colour
-                page_contents.push(Op::SetFillColor {
+                self.current_page_contents.push(Op::SetFillColor {
                     col: color::Color::Rgb(color::Rgb {
                         r: (text_style.r as f32) / 255.0,
                         g: (text_style.g as f32) / 255.0,
@@ -63,7 +94,7 @@ impl CodeToPdf {
                 });
                 if text.len() < MAX_LINE_LENGTH {
                     // Text fits within a line, so doesn't need any splitting
-                    page_contents.push(Op::WriteText {
+                    self.current_page_contents.push(Op::WriteText {
                         items: vec![TextItem::Text(text.to_owned())],
                         font: self.font_id.clone(),
                     });
@@ -73,10 +104,10 @@ impl CodeToPdf {
                     let mut first = true;
                     for c in chunks {
                         if !first {
-                            page_contents.push(Op::AddLineBreak);
+                            self.current_page_contents.push(Op::AddLineBreak);
                         }
                         first = false;
-                        page_contents.push(Op::WriteText {
+                        self.current_page_contents.push(Op::WriteText {
                             items: vec![TextItem::Text(c.to_owned())],
                             font: self.font_id.clone(),
                         });
@@ -86,43 +117,63 @@ impl CodeToPdf {
             line_count += 1;
             // Stop if this page is full
             if line_count > 54 {
-                break;
+                self.new_page();
+                init_page(
+                    &mut self.current_page_contents,
+                    self.page_dimensions,
+                    self.font_id.clone(),
+                    path.clone(),
+                );
+                line_count = 0;
             }
-            page_contents.push(Op::AddLineBreak);
+            self.current_page_contents.push(Op::AddLineBreak);
             line.clear();
         }
-        // Only push new page if text has been added to it
         if has_added_text {
-            Some(PdfPage::new(
-                printpdf::Mm(self.page_dimensions.0),
-                printpdf::Mm(self.page_dimensions.1),
-                page_contents,
-            ))
+            self.new_page();
         } else {
-            None
+            self.current_page_contents.clear()
         }
+        // Only push new page if text has been added to it
+        // if has_added_text {
+        //     Some(PdfPage::new(
+        //         printpdf::Mm(self.page_dimensions.0),
+        //         printpdf::Mm(self.page_dimensions.1),
+        //         self.current_page_contents,
+        //     ))
+        // } else {
+        //     None
+        // }
+        None
     }
     /// Generates pages for a file
-    pub fn process_file(&mut self, file: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn process_file(
+        &mut self,
+        file: PathBuf,
+        highlighter_data: &HighlighterData,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut highlighter = HighlightFile::new(
             file.clone(),
-            &self.syntax_set,
-            &self.theme_set.themes["InspiredGitHub"],
+            &highlighter_data.syntax_set,
+            &highlighter_data.theme_set.themes["InspiredGitHub"],
         )?;
         println!("Generating pages for {}", file.display());
 
-        while let Some(page) = self.generate_page(&mut highlighter, file.clone()) {
+        while let Some(page) = self.generate_pages(&mut highlighter, file.clone(), highlighter_data)
+        {
             self.pages.push(page)
         }
         Ok(())
     }
     /// Consumes entire walker
-    pub fn process_files(&mut self, walker: Walk) {
+    pub fn process_files(&mut self, walker: Walk, highlighter_data: HighlighterData) {
         for result in walker {
             match result {
                 Ok(entry) => {
                     if entry.file_type().is_some_and(|f| f.is_file()) {
-                        if let Err(err) = self.process_file(entry.path().to_path_buf()) {
+                        if let Err(err) =
+                            self.process_file(entry.path().to_path_buf(), &highlighter_data)
+                        {
                             println!("ERROR: {}", err)
                         }
                     }
@@ -131,16 +182,10 @@ impl CodeToPdf {
             }
         }
     }
-    pub fn new(
-        syntax_set: SyntaxSet,
-        theme_set: ThemeSet,
-        font_id: FontId,
-        page_dimensions: (f32, f32),
-    ) -> Self {
+    pub fn new(font_id: FontId, page_dimensions: (f32, f32)) -> Self {
         Self {
+            current_page_contents: vec![],
             pages: vec![],
-            syntax_set,
-            theme_set,
             font_id,
             page_dimensions,
         }

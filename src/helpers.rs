@@ -28,8 +28,13 @@ pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
     v
 }
 /// Generates a new page with basic contents
-pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: PathBuf) -> Vec<Op> {
-    vec![
+pub fn init_page(
+    contents: &mut Vec<Op>,
+    page_dimensions: (f32, f32),
+    font_id: FontId,
+    path: PathBuf,
+) {
+    contents.append(&mut vec![
         Op::SetLineHeight { lh: Pt(14.0) },
         Op::SetFontSize {
             size: Pt(12.0),
@@ -59,5 +64,5 @@ pub fn new_page_contents(page_dimensions: (f32, f32), font_id: FontId, path: Pat
         Op::SetTextRenderingMode {
             mode: TextRenderingMode::Fill,
         },
-    ]
+    ]);
 }

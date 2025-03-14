@@ -8,7 +8,7 @@ mod helpers;
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
-use code_to_pdf::CodeToPdf;
+use code_to_pdf::{CodeToPdf, HighlighterData};
 use std::time::Instant;
 
 #[derive(FromArgs)]
@@ -40,7 +40,7 @@ fn main() {
             let mut builder = OverrideBuilder::new(path);
             builder.add("!pnpm-lock.yaml").unwrap();
             builder.add("!Cargo.lock").unwrap();
-            builder.add("!*.umd.js").unwrap();
+            // builder.add("!*.umd.js").unwrap();
             builder.build().unwrap()
         })
         // Ensure that files are given higher precidence than folders
@@ -58,9 +58,10 @@ fn main() {
             .reverse()
         })
         .build();
-    let mut c2pdf = CodeToPdf::new(ss, ts, font_id, page_dimensions);
+    let mut c2pdf = CodeToPdf::new(font_id, page_dimensions);
+    let highlighter_data = HighlighterData::new(ss, ts);
     let start = Instant::now();
-    c2pdf.process_files(walker);
+    c2pdf.process_files(walker, highlighter_data);
     let pages = c2pdf.get_pages();
     let num_pages = pages.len();
     let pdf_bytes: Vec<u8> = doc

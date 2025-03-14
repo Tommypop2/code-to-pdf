@@ -9,7 +9,6 @@ use syntect::{
 };
 
 use crate::helpers::{init_page, split_into_chunks};
-static MAX_LINE_LENGTH: usize = 100;
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
@@ -29,6 +28,7 @@ pub struct CodeToPdf {
     pages: Vec<PdfPage>,
     font_id: FontId,
     page_dimensions: (f32, f32),
+    max_line_chars: usize,
 }
 impl CodeToPdf {
     /// Create new PdfPage with `current_page_contents` and reset `current_page_contents`
@@ -81,7 +81,7 @@ impl CodeToPdf {
             for (style, text) in regions {
                 count_size_line_break += text.len();
                 // If current line is getting too long, add a line break
-                if count_size_line_break > MAX_LINE_LENGTH {
+                if count_size_line_break > self.max_line_chars {
                     self.current_page_contents.push(Op::AddLineBreak);
                     count_size_line_break = 0;
                 }
@@ -95,7 +95,7 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-                if text.len() < MAX_LINE_LENGTH {
+                if text.len() < self.max_line_chars {
                     // Text fits within a line, so doesn't need any splitting
                     self.current_page_contents.push(Op::WriteText {
                         items: vec![TextItem::Text(text.to_owned())],
@@ -190,6 +190,7 @@ impl CodeToPdf {
             pages: vec![],
             font_id,
             page_dimensions,
+            max_line_chars: 100,
         }
     }
     /// Consumes the instance and returns the pages Vec

@@ -26,19 +26,24 @@ struct Arguments {
     /// path to output PDF to
     #[argh(option, default = "String::from(\"output.pdf\")")]
     out: String,
-    /// comma separated string of globs to exclude
+    /// comma separated string of globs to exclude.
+		/// Default exclusions are `pnpm-lock.yaml` and `Cargo.lock`
     #[argh(
         option,
         from_str_fn(vec_from_string),
         default = "vec![\"pnpm-lock.yaml\".into(), \"Cargo.lock\".into()]"
     )]
     exclude: StringVec,
+
+		/// name of PDF
+		#[argh(option, default="String::from(\"Project Code\")")]
+		name: String,
 }
 fn main() {
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
     let page_dimensions: (f32, f32) = (210.0, 297.0);
-    let mut doc = PdfDocument::new("Project Code");
+    let mut doc = PdfDocument::new(&args.name);
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
     let font = ParsedFont::from_bytes(helvetica_bytes, 33, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);

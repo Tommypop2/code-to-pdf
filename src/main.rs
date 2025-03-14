@@ -27,11 +27,14 @@ struct Arguments {
     #[argh(option, default = "String::from(\"output.pdf\")")]
     out: String,
     /// comma separated string of globs to exclude
-    #[argh(option, from_str_fn(vec_from_string))]
+    #[argh(
+        option,
+        from_str_fn(vec_from_string),
+        default = "vec![\"pnpm-lock.yaml\".into(), \"Cargo.lock\".into()]"
+    )]
     exclude: StringVec,
 }
 fn main() {
-    // let args: Vec<String> = std::env::args().collect();
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
     let page_dimensions: (f32, f32) = (210.0, 297.0);
@@ -39,15 +42,11 @@ fn main() {
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
     let font = ParsedFont::from_bytes(helvetica_bytes, 33, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
-    // Highlighting stuff
-    // let ss = SyntaxSet::load_defaults_newlines();
     let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
     let walker = WalkBuilder::new(path.clone())
         .overrides({
             let mut builder = OverrideBuilder::new(path);
-            builder.add("!pnpm-lock.yaml").unwrap();
-            builder.add("!Cargo.lock").unwrap();
             for exclusion in args.exclude {
                 builder.add(&("!".to_string() + &exclusion)).unwrap();
             }

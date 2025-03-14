@@ -48,7 +48,7 @@ impl CodeToPdf {
         highlighter: &mut HighlightFile,
         path: PathBuf,
         highlighter_config: &HighlighterConfig,
-    ) -> Option<PdfPage> {
+    ) {
         let mut line = String::new();
         let mut line_count = 0;
         init_page(
@@ -129,7 +129,7 @@ impl CodeToPdf {
                 }
             }
             line_count += 1;
-            // Stop if this page is full
+            // Move to new page if current page is full
             if line_count > 54 {
                 self.new_page();
                 init_page(
@@ -143,22 +143,12 @@ impl CodeToPdf {
             self.current_page_contents.push(Op::AddLineBreak);
             line.clear();
         }
+        // Clear page if no text has been added to it
         if has_added_text {
             self.new_page();
         } else {
             self.current_page_contents.clear()
         }
-        // Only push new page if text has been added to it
-        // if has_added_text {
-        //     Some(PdfPage::new(
-        //         printpdf::Mm(self.page_dimensions.0),
-        //         printpdf::Mm(self.page_dimensions.1),
-        //         self.current_page_contents,
-        //     ))
-        // } else {
-        //     None
-        // }
-        None
     }
     /// Generates pages for a file
     pub fn process_file(
@@ -173,11 +163,8 @@ impl CodeToPdf {
         )?;
         println!("Generating pages for {}", file.display());
 
-        while let Some(page) =
-            self.generate_pages(&mut highlighter, file.clone(), highlighter_config)
-        {
-            self.pages.push(page)
-        }
+        self.generate_pages(&mut highlighter, file.clone(), highlighter_config);
+
         Ok(())
     }
     /// Consumes entire walker

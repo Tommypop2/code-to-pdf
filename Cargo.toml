@@ -13,3 +13,6 @@ ignore = "0.4.23"
 printpdf = { git = "https://github.com/fschutt/printpdf" }
 syntect = "5.2.0"
 two-face = "0.4.3"
+
+[profile.release]
+lto = "fat"

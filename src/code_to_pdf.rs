@@ -4,7 +4,7 @@ use ignore::Walk;
 use printpdf::{color, FontId, Op, PdfPage, TextItem};
 use syntect::{
     easy::HighlightFile,
-    highlighting::{Style, ThemeSet},
+    highlighting::{Color, Style, ThemeSet},
     parsing::SyntaxSet,
 };
 
@@ -29,10 +29,21 @@ impl CodeToPdf {
             has_added_text = true;
             // Store the char count for the current line
             let mut count_size_line_break = 0;
-            let regions: Vec<(Style, &str)> = highlighter
-                .highlight_lines
-                .highlight_line(&line, &self.syntax_set)
-                .unwrap();
+            let regions: Vec<(Style, &str)> = if line.len() < 20_000 {
+                highlighter
+                    .highlight_lines
+                    .highlight_line(&line, &self.syntax_set)
+                    .unwrap()
+            } else {
+                vec![(
+                    Style {
+                        foreground: Color::BLACK,
+                        background: Color::WHITE,
+                        font_style: syntect::highlighting::FontStyle::default(),
+                    },
+                    &line,
+                )]
+            };
             for (style, text) in regions {
                 count_size_line_break += text.len();
                 // If current line is getting too long, add a line break

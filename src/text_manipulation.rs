@@ -20,7 +20,10 @@ pub fn split_into_lines_fontdue(
                 width
             }
         };
-        if current_line_width + width >= max_width {
+        // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
+        if current_line_width + width >= max_width
+            || (max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
+        {
             lines.push(line_buf.trim().to_string());
             line_buf.clear();
             current_line_width = 0.0;
@@ -28,6 +31,7 @@ pub fn split_into_lines_fontdue(
         line_buf.push(ch);
         current_line_width += width
     }
+    lines.push(line_buf);
     lines
 }
 
@@ -44,6 +48,11 @@ impl TextWrapper {
         }
     }
     pub fn split_into_lines(&mut self, txt: &str) -> Vec<String> {
-        split_into_lines_fontdue(txt, &self.font, printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0, &mut self.rasterize_cache)
+        split_into_lines_fontdue(
+            txt,
+            &self.font,
+            printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0,
+            &mut self.rasterize_cache,
+        )
     }
 }

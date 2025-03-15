@@ -14,7 +14,7 @@ use std::time::Instant;
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
 fn vec_from_string(s: &str) -> Result<StringVec, String> {
-    Ok(s.split(",").into_iter().map(str::to_string).collect())
+    Ok(s.split(",").map(str::to_string).collect())
 }
 #[derive(FromArgs)]
 /// Command line arguments

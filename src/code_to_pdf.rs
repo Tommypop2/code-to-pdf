@@ -8,10 +8,7 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::{
-    helpers::{init_page, split_into_chunks},
-    text_manipulation::TextWrapper,
-};
+use crate::{helpers::init_page, text_manipulation::TextWrapper};
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
@@ -99,61 +96,45 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-                if text.len() < self.max_line_chars {
-                    // Text fits within a line, so doesn't need any splitting
-                    self.current_page_contents.push(Op::WriteText {
-                        items: vec![TextItem::Text(text.to_owned())],
-                        font: self.font_id.clone(),
-                    });
-                } else {
-                    // Split text into chunks the maximum width of the view
-                    let mut first = true;
-                    for l in self.text_wrapper.split_into_lines(text) {
-                        if !first {
-                            self.current_page_contents.push(Op::AddLineBreak);
-                        }
-                        first = false;
+                let lines = self.text_wrapper.split_into_lines(text);
+                // If only a single line, then no new lines are going to be made (as we're processing a region here)
+                match lines.len() {
+                    1 => {
                         self.current_page_contents.push(Op::WriteText {
-                            items: vec![TextItem::Text(l)],
+                            items: vec![TextItem::Text(text.to_owned())],
                             font: self.font_id.clone(),
                         });
-                        line_count += 1;
-                        if line_count > 54 {
-                            self.new_page();
-                            init_page(
-                                &mut self.current_page_contents,
-                                self.page_dimensions,
-                                self.font_id.clone(),
-                                path.clone(),
-                            );
-                            line_count = 0;
+                    }
+                    // If the region is too long to fit onto a new line, split and write to multiple different lines
+                    _ => {
+                        let mut first = true;
+                        for l in lines {
+                            if !first {
+                                self.current_page_contents.push(Op::AddLineBreak);
+                            }
+                            first = false;
+                            self.current_page_contents.push(Op::WriteText {
+                                items: vec![TextItem::Text(l)],
+                                font: self.font_id.clone(),
+                            });
+                            line_count += 1;
+                            if line_count > 54 {
+                                self.new_page();
+                                init_page(
+                                    &mut self.current_page_contents,
+                                    self.page_dimensions,
+                                    self.font_id.clone(),
+                                    path.clone(),
+                                );
+                                line_count = 0;
+                            }
                         }
                     }
-                    // let chunks = split_into_chunks(text, 100);
-                    // let mut first = true;
-                    // for c in chunks {
-                    //     if !first {
-                    //         self.current_page_contents.push(Op::AddLineBreak);
-                    //     }
-                    //     first = false;
-                    //     self.current_page_contents.push(Op::WriteText {
-                    //         items: vec![TextItem::Text(c.to_owned())],
-                    //         font: self.font_id.clone(),
-                    //     });
-                    //     line_count += 1;
-                    //     if line_count > 54 {
-                    //         self.new_page();
-                    //         init_page(
-                    //             &mut self.current_page_contents,
-                    //             self.page_dimensions,
-                    //             self.font_id.clone(),
-                    //             path.clone(),
-                    //         );
-                    //         line_count = 0;
-                    //     }
-                    // }
                 }
             }
+
+            // Split text into chunks the maximum width of the view
+
             line_count += 1;
             // Move to new page if current page is full
             if line_count > 54 {

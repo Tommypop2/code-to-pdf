@@ -5,7 +5,7 @@ use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMod
 
 /// Slicing into a &str can slice part-way through a character, which would panic.
 /// This slices into the nearest full character chunk_size given
-fn index_close_to_chunk(slice: &str, i: usize, chunk_size: usize) -> (&str, usize) {
+pub fn index_close_to_chunk(slice: &str, i: usize, chunk_size: usize) -> (&str, usize) {
     let mut actual_chunk_size: usize = chunk_size;
     loop {
         if let Some(s) = slice.get(i..(i + actual_chunk_size)) {

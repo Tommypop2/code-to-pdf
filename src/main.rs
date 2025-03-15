@@ -1,10 +1,11 @@
-//! Prints highlighted HTML for a file to stdout.
-//! Basically just wraps a body around `highlighted_html_for_file`
 use core::f32;
+use cosmic_text::Buffer;
 use printpdf::*;
 use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
+use text_manipulation::TextWrapper;
 mod helpers;
+mod text_manipulation;
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
@@ -27,7 +28,7 @@ struct Arguments {
     #[argh(option, default = "String::from(\"output.pdf\")")]
     out: String,
     /// comma separated string of globs to exclude.
-		/// Default exclusions are `pnpm-lock.yaml` and `Cargo.lock`
+    /// Default exclusions are `pnpm-lock.yaml` and `Cargo.lock`
     #[argh(
         option,
         from_str_fn(vec_from_string),
@@ -35,9 +36,9 @@ struct Arguments {
     )]
     exclude: StringVec,
 
-		/// name of PDF
-		#[argh(option, default="String::from(\"Project Code\")")]
-		name: String,
+    /// name of PDF
+    #[argh(option, default = "String::from(\"Project Code\")")]
+    name: String,
 }
 fn main() {
     let args: Arguments = argh::from_env();
@@ -72,7 +73,16 @@ fn main() {
             .reverse()
         })
         .build();
-    let mut c2pdf = CodeToPdf::new(font_id, page_dimensions);
+    let mut font_system = TextWrapper::font_bytes_to_font_system(helvetica_bytes);
+    let mut c2pdf = CodeToPdf::new(
+        font_id,
+        page_dimensions,
+        TextWrapper::new(
+            Buffer::new(&mut font_system, cosmic_text::Metrics::new(14.0, 20.0)),
+            font_system,
+            cosmic_text::Wrap::Word,
+        ),
+    );
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);

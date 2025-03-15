@@ -8,7 +8,10 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::helpers::{init_page, split_into_chunks};
+use crate::{
+    helpers::{init_page, split_into_chunks},
+    text_manipulation::TextWrapper,
+};
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
@@ -29,6 +32,7 @@ pub struct CodeToPdf {
     font_id: FontId,
     page_dimensions: (f32, f32),
     max_line_chars: usize,
+    text_wrapper: TextWrapper,
 }
 impl CodeToPdf {
     /// Create new PdfPage with `current_page_contents` and reset `current_page_contents`
@@ -103,6 +107,23 @@ impl CodeToPdf {
                     });
                 } else {
                     // Split text into chunks the maximum width of the view
+                    // for l in self.text_wrapper.split_into_lines(text) {
+                    //     self.current_page_contents.push(Op::WriteText {
+                    //         items: vec![TextItem::Text(l)],
+                    //         font: self.font_id.clone(),
+                    //     });
+                    //     line_count += 1;
+                    //     if line_count > 54 {
+                    //         self.new_page();
+                    //         init_page(
+                    //             &mut self.current_page_contents,
+                    //             self.page_dimensions,
+                    //             self.font_id.clone(),
+                    //             path.clone(),
+                    //         );
+                    //         line_count = 0;
+                    //     }
+                    // }
                     let chunks = split_into_chunks(text, 100);
                     let mut first = true;
                     for c in chunks {
@@ -184,13 +205,14 @@ impl CodeToPdf {
             }
         }
     }
-    pub fn new(font_id: FontId, page_dimensions: (f32, f32)) -> Self {
+    pub fn new(font_id: FontId, page_dimensions: (f32, f32), text_wrapper: TextWrapper) -> Self {
         Self {
             current_page_contents: vec![],
             pages: vec![],
             font_id,
             page_dimensions,
             max_line_chars: 100,
+            text_wrapper,
         }
     }
     /// Consumes the instance and returns the pages Vec

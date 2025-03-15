@@ -56,6 +56,7 @@ impl CodeToPdf {
             &mut self.current_page_contents,
             self.page_dimensions,
             self.font_id.clone(),
+            self.text_wrapper.font_size(),
             path.clone(),
         );
         let mut has_added_text = false;
@@ -124,6 +125,7 @@ impl CodeToPdf {
                                     &mut self.current_page_contents,
                                     self.page_dimensions,
                                     self.font_id.clone(),
+                                    self.text_wrapper.font_size(),
                                     path.clone(),
                                 );
                                 line_count = 0;
@@ -143,6 +145,7 @@ impl CodeToPdf {
                     &mut self.current_page_contents,
                     self.page_dimensions,
                     self.font_id.clone(),
+                    self.text_wrapper.font_size(),
                     path.clone(),
                 );
                 line_count = 0;

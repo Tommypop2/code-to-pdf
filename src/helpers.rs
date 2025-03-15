@@ -31,12 +31,13 @@ pub fn init_page(
     contents: &mut Vec<Op>,
     page_dimensions: (f32, f32),
     font_id: FontId,
+		font_size: f32,
     path: PathBuf,
 ) {
     contents.extend_from_slice(&[
         Op::SetLineHeight { lh: Pt(14.0) },
         Op::SetFontSize {
-            size: Pt(12.0),
+            size: Pt(font_size),
             font: font_id.clone(),
         },
         // Write metadata

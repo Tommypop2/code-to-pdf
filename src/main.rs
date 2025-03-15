@@ -38,6 +38,14 @@ struct Arguments {
     /// name of PDF
     #[argh(option, default = "String::from(\"Project Code\")")]
     name: String,
+
+    /// optional path to font file, code-to-pdf will use the bundled `Helvetica` font by default
+    #[argh(option)]
+    font: Option<String>,
+
+    /// size of the font in the PDF in point
+    #[argh(option, default = "12.0")]
+    font_size: f32,
 }
 fn main() {
     dbg!(Mm(210.0).into_pt());
@@ -46,7 +54,13 @@ fn main() {
     let page_dimensions: (f32, f32) = (210.0, 297.0);
     let mut doc = PdfDocument::new(&args.name);
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
-    let font = ParsedFont::from_bytes(helvetica_bytes, 33, &mut vec![]).unwrap();
+    let font_bytes = match args.font {
+        Some(path) => fs::read(path).unwrap(),
+        // Don't really like this heap allocation here but it's not at all in the program's critical
+        // path so is fine
+        None => helvetica_bytes.to_vec(),
+    };
+    let font = ParsedFont::from_bytes(&font_bytes, 0, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
     let ss = two_face::syntax::extra_newlines();
     let ts = ThemeSet::load_defaults();
@@ -73,7 +87,11 @@ fn main() {
             .reverse()
         })
         .build();
-    let mut c2pdf = CodeToPdf::new(font_id, page_dimensions, TextWrapper::new(helvetica_bytes));
+    let mut c2pdf = CodeToPdf::new(
+        font_id,
+        page_dimensions,
+        TextWrapper::new(&font_bytes, args.font_size),
+    );
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);

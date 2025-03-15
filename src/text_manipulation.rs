@@ -5,6 +5,7 @@ use fontdue::{Font, FontSettings};
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,
+    font_size: f32,
     max_width: f32,
     cache: &mut std::collections::HashMap<char, f32>,
 ) -> Vec<String> {
@@ -15,7 +16,7 @@ pub fn split_into_lines_fontdue(
         let width = match cache.get(&ch) {
             Some(w) => *w,
             None => {
-                let width = font.rasterize(ch, 12.0).0.advance_width;
+                let width = font.rasterize(ch, font_size).0.advance_width;
                 cache.insert(ch, width);
                 width
             }
@@ -38,21 +39,27 @@ pub fn split_into_lines_fontdue(
 pub struct TextWrapper {
     rasterize_cache: HashMap<char, f32>,
     font: Font,
+    font_size: f32,
 }
 
 impl TextWrapper {
-    pub fn new(font_bytes: &[u8]) -> Self {
+    pub fn new(font_bytes: &[u8], font_size: f32) -> Self {
         Self {
             rasterize_cache: HashMap::new(),
             font: Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),
+            font_size,
         }
     }
     pub fn split_into_lines(&mut self, txt: &str) -> Vec<String> {
         split_into_lines_fontdue(
             txt,
             &self.font,
+            self.font_size,
             printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0,
             &mut self.rasterize_cache,
         )
     }
+		pub fn font_size(&self) -> f32 {
+			self.font_size
+		}
 }

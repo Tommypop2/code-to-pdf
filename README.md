@@ -2,6 +2,14 @@
 
 Converts a folder of source code to a fully syntax-highlighted PDF
 
+## Features
+
+- Syntax highlights code (uses [two-face](https://crates.io/crates/two-face) for syntax definitions)
+- Automatically handles line wrapping and page overflowing
+- Fast
+- Error-tolerant
+- Configurable (custom file exclusions, output filename, fonts)
+
 ## Installation
 
 ### From [crates.io](https://crates.io)

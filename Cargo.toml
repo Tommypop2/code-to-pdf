@@ -9,7 +9,7 @@ path = "src/main.rs"
 
 [dependencies]
 argh = "0.1.13"
-cosmic-text = "0.13.2"
+fontdue = "0.9.3"
 ignore = "0.4.23"
 printpdf = { git = "https://github.com/fschutt/printpdf" }
 syntect = "5.2.0"

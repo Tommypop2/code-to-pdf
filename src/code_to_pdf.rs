@@ -107,32 +107,14 @@ impl CodeToPdf {
                     });
                 } else {
                     // Split text into chunks the maximum width of the view
-                    // for l in self.text_wrapper.split_into_lines(text) {
-                    //     self.current_page_contents.push(Op::WriteText {
-                    //         items: vec![TextItem::Text(l)],
-                    //         font: self.font_id.clone(),
-                    //     });
-                    //     line_count += 1;
-                    //     if line_count > 54 {
-                    //         self.new_page();
-                    //         init_page(
-                    //             &mut self.current_page_contents,
-                    //             self.page_dimensions,
-                    //             self.font_id.clone(),
-                    //             path.clone(),
-                    //         );
-                    //         line_count = 0;
-                    //     }
-                    // }
-                    let chunks = split_into_chunks(text, 100);
                     let mut first = true;
-                    for c in chunks {
+                    for l in self.text_wrapper.split_into_lines(text) {
                         if !first {
                             self.current_page_contents.push(Op::AddLineBreak);
                         }
                         first = false;
                         self.current_page_contents.push(Op::WriteText {
-                            items: vec![TextItem::Text(c.to_owned())],
+                            items: vec![TextItem::Text(l)],
                             font: self.font_id.clone(),
                         });
                         line_count += 1;
@@ -147,6 +129,29 @@ impl CodeToPdf {
                             line_count = 0;
                         }
                     }
+                    // let chunks = split_into_chunks(text, 100);
+                    // let mut first = true;
+                    // for c in chunks {
+                    //     if !first {
+                    //         self.current_page_contents.push(Op::AddLineBreak);
+                    //     }
+                    //     first = false;
+                    //     self.current_page_contents.push(Op::WriteText {
+                    //         items: vec![TextItem::Text(c.to_owned())],
+                    //         font: self.font_id.clone(),
+                    //     });
+                    //     line_count += 1;
+                    //     if line_count > 54 {
+                    //         self.new_page();
+                    //         init_page(
+                    //             &mut self.current_page_contents,
+                    //             self.page_dimensions,
+                    //             self.font_id.clone(),
+                    //             path.clone(),
+                    //         );
+                    //         line_count = 0;
+                    //     }
+                    // }
                 }
             }
             line_count += 1;

@@ -1,5 +1,4 @@
 use core::f32;
-use cosmic_text::Buffer;
 use printpdf::*;
 use std::{cmp::Ordering, fs};
 use syntect::highlighting::ThemeSet;
@@ -41,6 +40,7 @@ struct Arguments {
     name: String,
 }
 fn main() {
+    dbg!(Mm(210.0).into_pt());
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
     let page_dimensions: (f32, f32) = (210.0, 297.0);
@@ -73,16 +73,7 @@ fn main() {
             .reverse()
         })
         .build();
-    let mut font_system = TextWrapper::font_bytes_to_font_system(helvetica_bytes);
-    let mut c2pdf = CodeToPdf::new(
-        font_id,
-        page_dimensions,
-        TextWrapper::new(
-            Buffer::new(&mut font_system, cosmic_text::Metrics::new(14.0, 20.0)),
-            font_system,
-            cosmic_text::Wrap::Word,
-        ),
-    );
+    let mut c2pdf = CodeToPdf::new(font_id, page_dimensions, TextWrapper::new(helvetica_bytes));
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);

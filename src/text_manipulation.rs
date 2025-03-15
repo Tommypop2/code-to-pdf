@@ -1,58 +1,49 @@
-use cosmic_text::{
-    fontdb::Database, Attrs, BorrowedWithFontSystem, Buffer, FontSystem, Metrics, Shaping, Wrap,
-};
+use std::collections::HashMap;
 
-/// Split txt into lines
-pub fn split_into_lines_cosmic<'a>(
-	txt: &str,
-	buffer: &mut BorrowedWithFontSystem<'a, Buffer>,
+use fontdue::{Font, FontSettings};
+
+pub fn split_into_lines_fontdue(
+    txt: &str,
+    font: &Font,
+    max_width: f32,
+    cache: &mut std::collections::HashMap<char, f32>,
 ) -> Vec<String> {
-	let mut lines = vec![];
-	let attrs = Attrs::new();
-
-	buffer.set_text(txt, attrs, Shaping::Basic);
-	let x = buffer.line_layout(0).unwrap();
-	let mut chars_iterator = txt.chars();
-	for w in x {
-			let mut line = String::new();
-			let chunk_size = w.glyphs.len();
-			let mut i = 0;
-			for ch in &mut chars_iterator {
-					i += 1;
-					line.push(ch);
-					if i >= chunk_size {
-							break;
-					}
-			}
-			lines.push(line)
-	}
-	lines
+    let mut lines: Vec<String> = vec![];
+    let mut line_buf = String::new();
+    let mut current_line_width = 0.0;
+    for ch in txt.chars() {
+        let width = match cache.get(&ch) {
+            Some(w) => *w,
+            None => {
+                let width = font.rasterize(ch, 12.0).0.advance_width;
+                cache.insert(ch, width);
+                width
+            }
+        };
+        if current_line_width + width >= max_width {
+            lines.push(line_buf.trim().to_string());
+            line_buf.clear();
+            current_line_width = 0.0;
+        }
+        line_buf.push(ch);
+        current_line_width += width
+    }
+    lines
 }
 
 pub struct TextWrapper {
-    buffer: Buffer,
-    font_system: FontSystem,
+    rasterize_cache: HashMap<char, f32>,
+    font: Font,
 }
 
 impl TextWrapper {
-    pub fn font_bytes_to_font_system(bytes: &[u8]) -> FontSystem {
-        let mut db = Database::new();
-        db.load_font_data(bytes.to_vec());
-        let font_system = cosmic_text::FontSystem::new_with_locale_and_db("asd".to_string(), db);
-        font_system
-    }
-    pub fn new(mut buffer: Buffer, mut font_system: FontSystem, wrapping: Wrap) -> Self {
-        buffer.set_wrap(&mut font_system, wrapping);
+    pub fn new(font_bytes: &[u8]) -> Self {
         Self {
-            buffer,
-            font_system,
+            rasterize_cache: HashMap::new(),
+            font: Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),
         }
     }
-    pub fn set_metrics(&mut self, metrics: Metrics) {
-        self.buffer.set_metrics(&mut self.font_system, metrics);
-    }
     pub fn split_into_lines(&mut self, txt: &str) -> Vec<String> {
-        let borrowed = &mut self.buffer.borrow_with(&mut self.font_system);
-        split_into_lines_cosmic(txt, borrowed)
+        split_into_lines_fontdue(txt, &self.font, printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0, &mut self.rasterize_cache)
     }
 }

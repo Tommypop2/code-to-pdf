@@ -1,7 +1,7 @@
 [package]
 name = "code-to-pdf"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/Tommypop2/code-to-pdf"
 [[bin]]
 name = "c2pdf"
@@ -12,7 +12,8 @@ argh = "0.1.13"
 fontdue = "0.9.3"
 ignore = "0.4.23"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
-printpdf = { path = "../printpdf", default-features = false }
+# printpdf = { path = "../printpdf", default-features = false }
+printpdf = { git = "https://github.com/Tommypop2/printpdf", default-features = false }
 syntect = "5.2.0"
 two-face = "0.4.3"
 

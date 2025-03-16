@@ -886,7 +886,6 @@ checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 [[package]]
 name = "printpdf"
 version = "0.8.0"
-source = "git+https://github.com/fschutt/printpdf#4a66f37c3e7553dc5494dcc42cf05b20d2a3b6e7"
 dependencies = [
  "allsorts-subset-browser",
  "base64",

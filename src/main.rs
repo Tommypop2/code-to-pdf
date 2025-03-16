@@ -1,6 +1,9 @@
 use core::f32;
 use printpdf::*;
-use std::{cmp::Ordering, fs};
+use std::{
+    cmp::Ordering,
+    fs::{self, File},
+};
 use syntect::highlighting::ThemeSet;
 use text_manipulation::TextWrapper;
 mod helpers;
@@ -48,7 +51,6 @@ struct Arguments {
     font_size: f32,
 }
 fn main() {
-    dbg!(Mm(210.0).into_pt());
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
     let page_dimensions: (f32, f32) = (210.0, 297.0);
@@ -97,10 +99,12 @@ fn main() {
     c2pdf.process_files(walker, highlighter_config);
     let pages = c2pdf.get_pages();
     let num_pages = pages.len();
-    let pdf_bytes: Vec<u8> = doc
-        .with_pages(pages)
-        .save(&PdfSaveOptions::default(), &mut vec![]);
-    fs::write(args.out, pdf_bytes).unwrap();
+    let before_write = Instant::now();
+    let f = File::open(args.out).unwrap();
+    let mut f = std::io::BufWriter::new(f);
+    doc.with_pages(pages)
+        .save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
+    println!("Written in {}", before_write.elapsed().as_micros());
     println!("Done!");
     println!(
         "Generated {} pages in {} seconds",

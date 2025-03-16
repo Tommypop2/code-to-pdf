@@ -7,7 +7,7 @@ pub fn init_page(
     contents: &mut Vec<Op>,
     page_dimensions: (f32, f32),
     font_id: FontId,
-		font_size: f32,
+    font_size: f32,
     path: PathBuf,
 ) {
     contents.extend_from_slice(&[

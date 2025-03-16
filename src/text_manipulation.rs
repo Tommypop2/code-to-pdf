@@ -59,7 +59,7 @@ impl TextWrapper {
             &mut self.rasterize_cache,
         )
     }
-		pub fn font_size(&self) -> f32 {
-			self.font_size
-		}
+    pub fn font_size(&self) -> f32 {
+        self.font_size
+    }
 }

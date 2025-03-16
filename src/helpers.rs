@@ -1,31 +1,7 @@
-use core::str;
 use std::path::PathBuf;
 
 use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode};
 
-/// Slicing into a &str can slice part-way through a character, which would panic.
-/// This slices into the nearest full character chunk_size given
-pub fn index_close_to_chunk(slice: &str, i: usize, chunk_size: usize) -> (&str, usize) {
-    let mut actual_chunk_size: usize = chunk_size;
-    loop {
-        if let Some(s) = slice.get(i..(i + actual_chunk_size)) {
-            return (s, actual_chunk_size);
-        };
-        actual_chunk_size -= 1;
-    }
-}
-/// Splits a slice into chunks
-pub fn split_into_chunks(slice: &str, chunk_size: usize) -> Vec<&str> {
-    let mut v = vec![];
-    let mut i = 0;
-    while (i + chunk_size) <= slice.len() {
-        let (sub, actual_chunk_size) = index_close_to_chunk(slice, i, chunk_size);
-        v.push(sub);
-        i += actual_chunk_size;
-    }
-    v.push(&slice[i..slice.len()]);
-    v
-}
 /// Generates a new page with basic contents
 pub fn init_page(
     contents: &mut Vec<Op>,

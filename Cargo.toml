@@ -2,7 +2,7 @@
 name = "code-to-pdf"
 version = "0.1.0"
 edition = "2021"
-
+repository = "https://github.com/Tommypop2/code-to-pdf"
 [[bin]]
 name = "c2pdf"
 path = "src/main.rs"
@@ -18,3 +18,8 @@ two-face = "0.4.3"
 
 [profile.release]
 lto = "fat"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

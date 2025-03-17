@@ -8,7 +8,7 @@ use syntect::highlighting::ThemeSet;
 use text_manipulation::TextWrapper;
 mod helpers;
 mod text_manipulation;
-use ignore::{overrides::OverrideBuilder, WalkBuilder};
+use ignore::{WalkBuilder, overrides::OverrideBuilder};
 mod code_to_pdf;
 use argh::FromArgs;
 use code_to_pdf::{CodeToPdf, HighlighterConfig};
@@ -100,7 +100,7 @@ fn main() {
     let pages = c2pdf.get_pages();
     let num_pages = pages.len();
     let before_write = Instant::now();
-    let f = File::open(args.out).unwrap();
+    let f = File::create(args.out).unwrap();
     let mut f = std::io::BufWriter::new(f);
     doc.with_pages(pages)
         .save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);

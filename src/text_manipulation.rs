@@ -10,38 +10,6 @@ impl<'a> Iterator for SizedLines<'a> {
         None
     }
 }
-pub fn next_line(
-    char_iterator: &mut std::iter::Peekable<CharIndices<'_>>,
-    font: &Font,
-    font_size: f32,
-    max_width: f32,
-    cache: &mut std::collections::HashMap<char, f32>,
-) -> (usize, usize) {
-    let mut current_line_width = 0.0;
-    let first = char_iterator.peek().unwrap().clone();
-    while let Some((i, ch)) = char_iterator.next() {
-        let width = match cache.get(&ch) {
-            Some(w) => *w,
-            None => {
-                let width = font.rasterize(ch, font_size).0.advance_width;
-                cache.insert(ch, width);
-                width
-            }
-        };
-        if char_iterator.peek().is_none() {
-            return (first.0, i);
-        }
-        // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
-        if current_line_width + width >= max_width
-            || (max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
-        {
-            return (first.0, i);
-        }
-        current_line_width += width
-    }
-    unreachable!();
-    // (initial, char_iterator)
-}
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,

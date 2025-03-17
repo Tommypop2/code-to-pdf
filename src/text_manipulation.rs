@@ -63,3 +63,24 @@ impl TextWrapper {
         self.font_size
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let font_bytes = include_bytes!("../fonts/Helvetica.ttf") as &[u8];
+				let text = "Hello World!! This is a vaguely long string to test string splitting!";
+        let result = split_into_lines_fontdue(
+            text,
+            &Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),
+            20.0,
+            100.0,
+            &mut HashMap::new(),
+        );
+				assert_eq!(result.len(), 6);
+				// Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
+				assert_eq!(result.join("").replace(' ', ""), text.replace(' ', ""));
+    }
+}

@@ -1,7 +1,47 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::CharIndices};
 
 use fontdue::{Font, FontSettings};
-
+struct SizedLines<'a> {
+    text: &'a str,
+}
+impl<'a> Iterator for SizedLines<'a> {
+    type Item = u32;
+    fn next(&mut self) -> Option<Self::Item> {
+        None
+    }
+}
+pub fn next_line(
+    char_iterator: &mut std::iter::Peekable<CharIndices<'_>>,
+    font: &Font,
+    font_size: f32,
+    max_width: f32,
+    cache: &mut std::collections::HashMap<char, f32>,
+) -> (usize, usize) {
+    let mut current_line_width = 0.0;
+    let first = char_iterator.peek().unwrap().clone();
+    while let Some((i, ch)) = char_iterator.next() {
+        let width = match cache.get(&ch) {
+            Some(w) => *w,
+            None => {
+                let width = font.rasterize(ch, font_size).0.advance_width;
+                cache.insert(ch, width);
+                width
+            }
+        };
+        if char_iterator.peek().is_none() {
+            return (first.0, i);
+        }
+        // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
+        if current_line_width + width >= max_width
+            || (max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
+        {
+            return (first.0, i);
+        }
+        current_line_width += width
+    }
+    unreachable!();
+    // (initial, char_iterator)
+}
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,
@@ -68,19 +108,31 @@ impl TextWrapper {
 mod tests {
     use super::*;
 
+    const FONT_BYTES: &[u8] = include_bytes!("../fonts/Helvetica.ttf") as &[u8];
+    const TEXT: &str = "Hello World!! This is a vaguely long string to test string splitting!";
     #[test]
-    fn it_works() {
-        let font_bytes = include_bytes!("../fonts/Helvetica.ttf") as &[u8];
-				let text = "Hello World!! This is a vaguely long string to test string splitting!";
+    fn splitting_lines() {
         let result = split_into_lines_fontdue(
-            text,
-            &Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),
+            TEXT,
+            &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
             20.0,
             100.0,
             &mut HashMap::new(),
         );
-				assert_eq!(result.len(), 6);
-				// Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
-				assert_eq!(result.join("").replace(' ', ""), text.replace(' ', ""));
+        assert_eq!(result.len(), 6);
+        // Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
+        assert_eq!(result.join("").replace(' ', ""), TEXT.replace(' ', ""));
+    }
+
+    #[test]
+    fn splitting_next_line() {
+        let mut iterator = TEXT.char_indices().peekable();
+        let x = next_line(
+            &mut iterator,
+            &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
+            20.0,
+            100.0,
+            &mut HashMap::new(),
+        );
     }
 }

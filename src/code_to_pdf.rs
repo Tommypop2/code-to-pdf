@@ -97,17 +97,19 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-                let lines = self.text_wrapper.split_into_lines(text);
+                let mut lines = self.text_wrapper.split_into_lines(text).peekable();
                 // If only a single line, then no new lines are going to be made (as we're processing a region here)
-                match lines.len() {
-                    1 => {
+								let first = lines.next();
+								
+                match lines.peek() {
+                    None => {
                         self.current_page_contents.push(Op::WriteText {
                             items: vec![TextItem::Text(text.to_owned())],
                             font: self.font_id.clone(),
                         });
                     }
                     // If the region is too long to fit onto a new line, split and write to multiple different lines
-                    _ => {
+                    Some(_) => {
                         let mut first = true;
                         for l in lines {
                             if !first {

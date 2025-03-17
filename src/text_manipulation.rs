@@ -1,47 +1,44 @@
-use std::{collections::HashMap, str::CharIndices};
+use std::{
+    collections::HashMap,
+    str::{CharIndices, Chars},
+};
 
 use fontdue::{Font, FontSettings};
-struct SizedLines<'a> {
+struct SizedLines<'a, 'b, 'c> {
     text: &'a str,
+    iterator: Chars<'b>,
+    rasterize_cache: &'c mut HashMap<char, f32>,
+    font: &'a Font,
+    font_size: f32,
+    max_width: f32,
 }
-impl<'a> Iterator for SizedLines<'a> {
-    type Item = u32;
+impl<'a, 'b, 'c> Iterator for SizedLines<'a, 'b, 'c> {
+    type Item = String;
     fn next(&mut self) -> Option<Self::Item> {
+        let mut current_line_width = 0.0;
+        let mut line_buf = String::new();
+        while let Some(ch) = self.iterator.next() {
+            let width = match self.rasterize_cache.get(&ch) {
+                Some(w) => *w,
+                None => {
+                    let width = self.font.rasterize(ch, self.font_size).0.advance_width;
+                    self.rasterize_cache.insert(ch, width);
+                    width
+                }
+            };
+            // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
+            if current_line_width + width >= self.max_width
+                || (self.max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
+            {
+                return Some(line_buf.trim().to_string());
+            }
+            line_buf.push(ch);
+            current_line_width += width
+        }
         None
     }
 }
-pub fn next_line(
-    char_iterator: &mut std::iter::Peekable<CharIndices<'_>>,
-    font: &Font,
-    font_size: f32,
-    max_width: f32,
-    cache: &mut std::collections::HashMap<char, f32>,
-) -> (usize, usize) {
-    let mut current_line_width = 0.0;
-    let first = char_iterator.peek().unwrap().clone();
-    while let Some((i, ch)) = char_iterator.next() {
-        let width = match cache.get(&ch) {
-            Some(w) => *w,
-            None => {
-                let width = font.rasterize(ch, font_size).0.advance_width;
-                cache.insert(ch, width);
-                width
-            }
-        };
-        if char_iterator.peek().is_none() {
-            return (first.0, i);
-        }
-        // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
-        if current_line_width + width >= max_width
-            || (max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
-        {
-            return (first.0, i);
-        }
-        current_line_width += width
-    }
-    unreachable!();
-    // (initial, char_iterator)
-}
+
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,
@@ -90,14 +87,22 @@ impl TextWrapper {
             font_size,
         }
     }
-    pub fn split_into_lines(&mut self, txt: &str) -> Vec<String> {
-        split_into_lines_fontdue(
-            txt,
-            &self.font,
-            self.font_size,
-            printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0,
-            &mut self.rasterize_cache,
-        )
+    pub fn split_into_lines<'a>(&'a mut self, txt: &'a str) -> SizedLines {
+        // split_into_lines_fontdue(
+        //     txt,
+        //     &self.font,
+        //     self.font_size,
+        //     printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0,
+        //     &mut self.rasterize_cache,
+        // )
+        SizedLines {
+            text: txt,
+            iterator: txt.chars(),
+            rasterize_cache: &mut self.rasterize_cache,
+            font: &self.font,
+            font_size: self.font_size,
+            max_width: printpdf::Mm(210.0 - (10.0 + 10.0)).into_pt().0,
+        }
     }
     pub fn font_size(&self) -> f32 {
         self.font_size
@@ -127,12 +132,12 @@ mod tests {
     #[test]
     fn splitting_next_line() {
         let mut iterator = TEXT.char_indices().peekable();
-        let x = next_line(
-            &mut iterator,
-            &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
-            20.0,
-            100.0,
-            &mut HashMap::new(),
-        );
+        // let x = next_line(
+        //     &mut iterator,
+        //     &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
+        //     20.0,
+        //     100.0,
+        //     &mut HashMap::new(),
+        // );
     }
 }

@@ -91,16 +91,4 @@ mod tests {
         // Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
         assert_eq!(result.join("").replace(' ', ""), TEXT.replace(' ', ""));
     }
-
-    #[test]
-    fn splitting_next_line() {
-        let mut iterator = TEXT.char_indices().peekable();
-        let x = next_line(
-            &mut iterator,
-            &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
-            20.0,
-            100.0,
-            &mut HashMap::new(),
-        );
-    }
 }

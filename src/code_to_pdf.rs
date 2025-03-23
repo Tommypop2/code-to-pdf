@@ -1,7 +1,7 @@
 use std::{io::BufRead, path::PathBuf};
 
 use ignore::Walk;
-use printpdf::{color, FontId, Op, PdfPage, TextItem};
+use printpdf::{FontId, Op, PdfPage, TextItem, color};
 use syntect::{
     easy::HighlightFile,
     highlighting::{Color, Style, ThemeSet},
@@ -58,6 +58,7 @@ impl CodeToPdf {
             self.font_id.clone(),
             self.text_wrapper.font_size(),
             path.clone(),
+            &mut self.text_wrapper,
         );
         let mut has_added_text = false;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
@@ -127,6 +128,7 @@ impl CodeToPdf {
                                     self.font_id.clone(),
                                     self.text_wrapper.font_size(),
                                     path.clone(),
+                                    &mut self.text_wrapper,
                                 );
                                 line_count = 0;
                             }
@@ -147,6 +149,7 @@ impl CodeToPdf {
                     self.font_id.clone(),
                     self.text_wrapper.font_size(),
                     path.clone(),
+                    &mut self.text_wrapper,
                 );
                 line_count = 0;
             }

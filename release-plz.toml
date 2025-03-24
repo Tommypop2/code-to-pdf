@@ -16,7 +16,7 @@ git_release_enable = false
 
 # labels for the release PR
 pr_labels = ["release"]
-publish = false
+
 # disallow updating repositories with uncommitted changes
 allow_dirty = false
 

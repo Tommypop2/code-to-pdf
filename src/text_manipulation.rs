@@ -1,15 +1,7 @@
-use std::{collections::HashMap, str::CharIndices};
+use std::collections::HashMap;
 
 use fontdue::{Font, FontSettings};
-struct SizedLines<'a> {
-    text: &'a str,
-}
-impl<'a> Iterator for SizedLines<'a> {
-    type Item = u32;
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
+
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,

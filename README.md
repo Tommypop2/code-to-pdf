@@ -9,6 +9,7 @@ Converts a folder of source code to a fully syntax-highlighted PDF
 - Fast
 - Error-tolerant
 - Configurable (custom file exclusions, output filename, fonts)
+- Displays images
 
 ## Installation
 

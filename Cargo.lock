@@ -886,7 +886,8 @@ checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 [[package]]
 name = "printpdf"
 version = "0.8.2"
-source = "git+https://github.com/Tommypop2/printpdf#e32651eae8bba5623f2aed45d8c1a3ac131506a1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c008a86116be6addc2101202dccc3c59fef7760e325c3b24aaed255f075285c9"
 dependencies = [
  "allsorts-subset-browser",
  "base64",

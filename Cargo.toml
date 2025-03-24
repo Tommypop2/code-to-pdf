@@ -3,6 +3,9 @@ name = "code-to-pdf"
 version = "0.1.1"
 edition = "2024"
 repository = "https://github.com/Tommypop2/code-to-pdf"
+license = "MIT"
+description = "Generates a syntax-highlighted PDF of your source code"
+
 [[bin]]
 name = "c2pdf"
 path = "src/main.rs"

@@ -1,7 +1,7 @@
-use std::{io::BufRead, path::PathBuf};
+use std::{ffi::OsStr, io::BufRead, path::PathBuf};
 
 use ignore::Walk;
-use printpdf::{FontId, Op, PdfPage, TextItem, color};
+use printpdf::{color, FontId, Op, PdfDocument, PdfPage, TextItem};
 use syntect::{
     easy::HighlightFile,
     highlighting::{Color, Style, ThemeSet},
@@ -25,7 +25,7 @@ impl HighlighterConfig {
 }
 pub struct CodeToPdf {
     current_page_contents: Vec<Op>,
-    pages: Vec<PdfPage>,
+    doc: PdfDocument,
     font_id: FontId,
     page_dimensions: (f32, f32),
     max_line_chars: usize,
@@ -40,11 +40,11 @@ impl CodeToPdf {
             printpdf::Mm(self.page_dimensions.1),
             contents,
         );
-        self.pages.push(page);
+        self.doc.pages.push(page);
     }
 
     /// Generates all the pages for a file
-    fn generate_pages(
+    fn generate_highlighted_pages(
         &mut self,
         highlighter: &mut HighlightFile,
         path: PathBuf,
@@ -163,22 +163,30 @@ impl CodeToPdf {
             self.current_page_contents.clear()
         }
     }
+    fn generate_image_page(&mut self, path: PathBuf) {
+			
+		}
     /// Generates pages for a file
     pub fn process_file(
         &mut self,
         file: PathBuf,
         highlighter_config: &HighlighterConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut highlighter = HighlightFile::new(
-            file.clone(),
-            &highlighter_config.syntax_set,
-            &highlighter_config.theme_set.themes["InspiredGitHub"],
-        )?;
-        println!("Generating pages for {}", file.display());
+        match file.extension().and_then(OsStr::to_str) {
+            Some("jpg") => Ok(()),
+            _ => {
+                let mut highlighter = HighlightFile::new(
+                    file.clone(),
+                    &highlighter_config.syntax_set,
+                    &highlighter_config.theme_set.themes["InspiredGitHub"],
+                )?;
+                println!("Generating pages for {}", file.display());
 
-        self.generate_pages(&mut highlighter, file.clone(), highlighter_config);
+                self.generate_highlighted_pages(&mut highlighter, file.clone(), highlighter_config);
 
-        Ok(())
+                Ok(())
+            }
+        }
     }
     /// Consumes entire walker
     pub fn process_files(&mut self, walker: Walk, highlighter_config: HighlighterConfig) {
@@ -197,18 +205,18 @@ impl CodeToPdf {
             }
         }
     }
-    pub fn new(font_id: FontId, page_dimensions: (f32, f32), text_wrapper: TextWrapper) -> Self {
+    pub fn new(doc: PdfDocument, font_id: FontId, page_dimensions: (f32, f32), text_wrapper: TextWrapper) -> Self {
         Self {
             current_page_contents: vec![],
-            pages: vec![],
+            doc,
             font_id,
             page_dimensions,
             max_line_chars: 100,
             text_wrapper,
         }
     }
-    /// Consumes the instance and returns the pages Vec
-    pub fn get_pages(self) -> Vec<PdfPage> {
-        self.pages
+    /// Consumes the instance and returns the underlying document
+    pub fn document(self) -> PdfDocument {
+        self.doc
     }
 }

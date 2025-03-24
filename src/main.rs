@@ -90,6 +90,7 @@ fn main() {
         })
         .build();
     let mut c2pdf = CodeToPdf::new(
+        doc,
         font_id,
         page_dimensions,
         TextWrapper::new(&font_bytes, args.font_size),
@@ -97,13 +98,12 @@ fn main() {
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);
-    let pages = c2pdf.get_pages();
-    let num_pages = pages.len();
+    let doc = c2pdf.document();
+    let num_pages = doc.pages.len();
     let before_write = Instant::now();
     let f = File::create(args.out).unwrap();
     let mut f = std::io::BufWriter::new(f);
-    doc.with_pages(pages)
-        .save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
+    doc.save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
     println!("Written in {}", before_write.elapsed().as_micros());
     println!("Done!");
     println!(

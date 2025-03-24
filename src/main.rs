@@ -98,16 +98,18 @@ fn main() {
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);
+    let processed_file_count = c2pdf.processed_file_count;
     let doc = c2pdf.document();
     let num_pages = doc.pages.len();
-    let before_write = Instant::now();
+    // let before_write = Instant::now();
     let f = File::create(args.out).unwrap();
     let mut f = std::io::BufWriter::new(f);
     doc.save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
-    println!("Written in {}", before_write.elapsed().as_micros());
+    // println!("Written in {}", before_write.elapsed().as_micros());
     println!("Done!");
     println!(
-        "Generated {} pages in {} seconds",
+        "Processed {} files and generated {} pages in {} seconds",
+        processed_file_count,
         num_pages,
         start.elapsed().as_secs_f32()
     )

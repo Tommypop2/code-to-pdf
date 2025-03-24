@@ -33,15 +33,29 @@ pub struct CodeToPdf {
     page_dimensions: (Mm, Mm),
     max_line_chars: usize,
     text_wrapper: TextWrapper,
+    pub processed_file_count: usize,
 }
 impl CodeToPdf {
-    /// Create new PdfPage with `current_page_contents` and reset `current_page_contents`
+    /// Saves the current page contents to the document, and clears `current_page_contents`
     fn save_page(&mut self) {
         let contents = std::mem::take(&mut self.current_page_contents);
         let page = PdfPage::new(self.page_dimensions.0, self.page_dimensions.1, contents);
         self.doc.pages.push(page);
     }
+    /// Initialises a `current_page_contents` with basic contents
+    fn init_page(&mut self, path: PathBuf) {
+        // Should never be called on a non-empty `current_page_contents`, so check it in debug mode
+        debug_assert_eq!(self.current_page_contents.len(), 0);
 
+        init_page(
+            &mut self.current_page_contents,
+            self.page_dimensions,
+            self.font_id.clone(),
+            self.text_wrapper.font_size(),
+            path,
+            &mut self.text_wrapper,
+        );
+    }
     /// Generates all the pages for a file
     fn generate_highlighted_pages(
         &mut self,
@@ -51,14 +65,7 @@ impl CodeToPdf {
     ) {
         let mut line = String::new();
         let mut line_count = 0;
-        init_page(
-            &mut self.current_page_contents,
-            self.page_dimensions,
-            self.font_id.clone(),
-            self.text_wrapper.font_size(),
-            path.clone(),
-            &mut self.text_wrapper,
-        );
+        self.init_page(path.clone());
         let mut has_added_text = false;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
@@ -121,14 +128,7 @@ impl CodeToPdf {
                             line_count += 1;
                             if line_count > 54 {
                                 self.save_page();
-                                init_page(
-                                    &mut self.current_page_contents,
-                                    self.page_dimensions,
-                                    self.font_id.clone(),
-                                    self.text_wrapper.font_size(),
-                                    path.clone(),
-                                    &mut self.text_wrapper,
-                                );
+                                self.init_page(path.clone());
                                 line_count = 0;
                             }
                         }
@@ -142,14 +142,7 @@ impl CodeToPdf {
             // Move to new page if current page is full
             if line_count > 54 {
                 self.save_page();
-                init_page(
-                    &mut self.current_page_contents,
-                    self.page_dimensions,
-                    self.font_id.clone(),
-                    self.text_wrapper.font_size(),
-                    path.clone(),
-                    &mut self.text_wrapper,
-                );
+                self.init_page(path.clone());
                 line_count = 0;
             }
             self.current_page_contents.push(Op::AddLineBreak);
@@ -173,14 +166,7 @@ impl CodeToPdf {
         } else {
             return;
         };
-        init_page(
-            &mut self.current_page_contents,
-            self.page_dimensions,
-            self.font_id.clone(),
-            self.text_wrapper.font_size(),
-            path,
-            &mut self.text_wrapper,
-        );
+        self.init_page(path.clone());
         let image_id = self.doc.add_image(&image);
         let pg_x_dpi = self.page_dimensions.0.into_pt().into_px(300.0).0;
         let pg_y_dpi = self.page_dimensions.1.into_pt().into_px(300.0).0;
@@ -217,6 +203,7 @@ impl CodeToPdf {
         highlighter_config: &HighlighterConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
         println!("Generating pages for {}", file.display());
+        self.processed_file_count += 1;
         match file.extension().and_then(OsStr::to_str) {
             Some("jpg" | "png") => {
                 self.generate_image_page(file);
@@ -265,6 +252,7 @@ impl CodeToPdf {
             page_dimensions,
             max_line_chars: 100,
             text_wrapper,
+            processed_file_count: 0,
         }
     }
     /// Consumes the instance and returns the underlying document

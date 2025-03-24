@@ -26,6 +26,9 @@ impl HighlighterConfig {
         }
     }
 }
+/// Main struct for generating PDFs.
+/// It handles almost the entire process of reading and highlighting code,
+/// as well as actually writing it to the PDF
 pub struct CodeToPdf {
     current_page_contents: Vec<Op>,
     doc: PdfDocument,
@@ -42,7 +45,8 @@ impl CodeToPdf {
         let page = PdfPage::new(self.page_dimensions.0, self.page_dimensions.1, contents);
         self.doc.pages.push(page);
     }
-    /// Initialises a `current_page_contents` with basic contents
+
+    /// Initialises `current_page_contents` with basic contents
     fn init_page(&mut self, path: PathBuf) {
         // Should never be called on a non-empty `current_page_contents`, so check it in debug mode
         debug_assert_eq!(self.current_page_contents.len(), 0);
@@ -155,6 +159,8 @@ impl CodeToPdf {
             self.current_page_contents.clear()
         }
     }
+
+		/// Generates a page containing the image at the path given
     fn generate_image_page(&mut self, path: PathBuf) {
         let bytes = if let Ok(b) = fs::read(path.clone()) {
             b

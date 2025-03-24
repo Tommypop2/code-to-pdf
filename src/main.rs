@@ -53,7 +53,7 @@ struct Arguments {
 fn main() {
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
-    let page_dimensions: (f32, f32) = (210.0, 297.0);
+    let page_dimensions = (Mm(210.0), Mm(297.0));
     let mut doc = PdfDocument::new(&args.name);
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
     let font_bytes = match args.font {

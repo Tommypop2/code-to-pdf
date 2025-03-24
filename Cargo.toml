@@ -13,7 +13,12 @@ fontdue = "0.9.3"
 ignore = "0.4.23"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
 # printpdf = { path = "../printpdf", default-features = false }
-printpdf = { git = "https://github.com/Tommypop2/printpdf", default-features = false }
+printpdf = { git = "https://github.com/Tommypop2/printpdf", default-features = false, features = [
+	"jpeg",
+	"png",
+	"ico",
+	"bmp",
+] }
 syntect = "5.2.0"
 two-face = "0.4.3"
 

@@ -7,7 +7,7 @@ use crate::text_manipulation::TextWrapper;
 /// Generates a new page with basic contents
 pub fn init_page(
     contents: &mut Vec<Op>,
-    page_dimensions: (f32, f32),
+    page_dimensions: (Mm, Mm),
     font_id: FontId,
     font_size: f32,
     path: PathBuf,
@@ -23,7 +23,7 @@ pub fn init_page(
         Op::SetTextCursor {
             pos: Point {
                 x: Mm(10.0).into(),
-                y: Mm(page_dimensions.1 - 7.5).into(),
+                y: (page_dimensions.1 - Mm(7.5)).into(),
             },
         },
     ];
@@ -42,7 +42,7 @@ pub fn init_page(
         Op::SetTextCursor {
             pos: Point {
                 x: Mm(10.0).into(),
-                y: Mm(page_dimensions.1 - 20.0).into(),
+                y: (page_dimensions.1 - Mm(20.0)).into(),
             },
         },
         Op::SetTextRenderingMode {

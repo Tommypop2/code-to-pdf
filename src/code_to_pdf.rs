@@ -12,6 +12,7 @@ use syntect::{
 };
 
 use crate::{helpers::init_page, text_manipulation::TextWrapper};
+
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme_set: ThemeSet,
@@ -160,7 +161,7 @@ impl CodeToPdf {
         }
     }
 
-		/// Generates a page containing the image at the path given
+    /// Generates a page containing the image at the path given
     fn generate_image_page(&mut self, path: PathBuf) {
         let bytes = if let Ok(b) = fs::read(path.clone()) {
             b

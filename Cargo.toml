@@ -5,10 +5,12 @@ edition = "2024"
 repository = "https://github.com/Tommypop2/code-to-pdf"
 license = "MIT"
 description = "Generates a syntax-highlighted PDF of your source code"
-
+[lib]
+name = "c2pdf"
+path = "src/lib.rs"
 [[bin]]
 name = "c2pdf"
-path = "src/main.rs"
+path = "src/bin.rs"
 
 [dependencies]
 argh = "0.1.13"

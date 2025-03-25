@@ -105,7 +105,7 @@ impl CodeToPdf {
                 line_width += self.text_wrapper.get_width(text);
                 // If current line is getting too long, add a line break
                 if line_width > self.text_wrapper.max_width() {
-                    self.increment_line_count(&mut line_count, &path);
+                    self.increment_line_count(&mut line_count, path);
                     self.current_page_contents.push(Op::AddLineBreak);
                     line_width = 0.0;
                 }
@@ -140,7 +140,7 @@ impl CodeToPdf {
                                 items: vec![TextItem::Text(l)],
                                 font: self.font_id.clone(),
                             });
-                            self.increment_line_count(&mut line_count, &path);
+                            self.increment_line_count(&mut line_count, path);
                         }
                     }
                 }
@@ -148,7 +148,7 @@ impl CodeToPdf {
 
             // Split text into chunks the maximum width of the view
 
-            self.increment_line_count(&mut line_count, &path);
+            self.increment_line_count(&mut line_count, path);
             self.current_page_contents.push(Op::AddLineBreak);
             line.clear();
         }

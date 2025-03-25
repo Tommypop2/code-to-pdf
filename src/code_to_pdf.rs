@@ -212,7 +212,7 @@ impl CodeToPdf {
         println!("Generating pages for {}", file.display());
         self.processed_file_count += 1;
         match file.extension().and_then(OsStr::to_str) {
-            Some("jpg" | "png") => {
+            Some("jpg" | "jpeg" | "png" | "ico" | "bmp" | "webp") => {
                 self.generate_image_page(file);
                 Ok(())
             }

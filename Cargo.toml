@@ -23,6 +23,7 @@ printpdf = { version = "0.8.2", default-features = false, features = [
 	"png",
 	"ico",
 	"bmp",
+	"webp"
 ] }
 syntect = "5.2.0"
 two-face = "0.4.3"

@@ -93,7 +93,11 @@ fn main() {
         doc,
         font_id,
         page_dimensions,
-        TextWrapper::new(&font_bytes, args.font_size),
+        TextWrapper::new(
+            &font_bytes,
+            args.font_size,
+            printpdf::Mm(210.0 - (10.0 + 10.0)),
+        ),
     );
     let highlighter_config = HighlighterConfig::new(ss, ts);
     let start = Instant::now();

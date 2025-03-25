@@ -48,7 +48,7 @@ impl CodeToPdf {
     }
 
     /// Initialises `current_page_contents` with basic contents
-    fn init_page(&mut self, path: PathBuf) {
+    fn init_page(&mut self, path: &PathBuf) {
         // Should never be called on a non-empty `current_page_contents`, so check it in debug mode
         debug_assert_eq!(self.current_page_contents.len(), 0);
 
@@ -61,6 +61,15 @@ impl CodeToPdf {
             &mut self.text_wrapper,
         );
     }
+    /// Increment given `line_count`. Begin a new page if it's too high
+    fn increment_line_count(&mut self, line_count: &mut u32, path: &PathBuf) {
+        *line_count += 1;
+        if *line_count > 54 {
+            self.save_page();
+            self.init_page(path);
+            *line_count = 0;
+        }
+    }
     /// Generates all the pages for a file
     fn generate_highlighted_pages(
         &mut self,
@@ -70,12 +79,12 @@ impl CodeToPdf {
     ) {
         let mut line = String::new();
         let mut line_count = 0;
-        self.init_page(path.clone());
+        self.init_page(&path.clone());
         let mut has_added_text = false;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
             // Store the char count for the current line
-            let mut count_size_line_break = 0;
+            let mut line_width = 0.0;
             let regions: Vec<(Style, &str)> =
                 if line.len() < highlighter_config.max_line_len_to_highlight {
                     highlighter
@@ -93,11 +102,12 @@ impl CodeToPdf {
                     )]
                 };
             for (style, text) in regions {
-                count_size_line_break += text.len();
+                line_width += self.text_wrapper.get_width(text);
                 // If current line is getting too long, add a line break
-                if count_size_line_break > self.max_line_chars {
+                if line_width > self.text_wrapper.max_width() {
+                    self.increment_line_count(&mut line_count, &path);
                     self.current_page_contents.push(Op::AddLineBreak);
-                    count_size_line_break = 0;
+                    line_width = 0.0;
                 }
                 let text_style = style.foreground;
                 // Set PDF text colour
@@ -130,12 +140,7 @@ impl CodeToPdf {
                                 items: vec![TextItem::Text(l)],
                                 font: self.font_id.clone(),
                             });
-                            line_count += 1;
-                            if line_count > 54 {
-                                self.save_page();
-                                self.init_page(path.clone());
-                                line_count = 0;
-                            }
+                            self.increment_line_count(&mut line_count, &path);
                         }
                     }
                 }
@@ -143,13 +148,7 @@ impl CodeToPdf {
 
             // Split text into chunks the maximum width of the view
 
-            line_count += 1;
-            // Move to new page if current page is full
-            if line_count > 54 {
-                self.save_page();
-                self.init_page(path.clone());
-                line_count = 0;
-            }
+            self.increment_line_count(&mut line_count, &path);
             self.current_page_contents.push(Op::AddLineBreak);
             line.clear();
         }
@@ -173,7 +172,7 @@ impl CodeToPdf {
         } else {
             return;
         };
-        self.init_page(path.clone());
+        self.init_page(&path.clone());
         let image_id = self.doc.add_image(&image);
         let pg_x_dpi = self.page_dimensions.0.into_pt().into_px(300.0).0;
         let pg_y_dpi = self.page_dimensions.1.into_pt().into_px(300.0).0;

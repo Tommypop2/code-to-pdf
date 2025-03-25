@@ -10,7 +10,7 @@ pub fn init_page(
     page_dimensions: (Mm, Mm),
     font_id: FontId,
     font_size: f32,
-    path: PathBuf,
+    path: &PathBuf,
     wrapper: &mut TextWrapper,
 ) {
     let mut new_contents = vec![

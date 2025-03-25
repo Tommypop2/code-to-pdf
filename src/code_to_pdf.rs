@@ -35,7 +35,6 @@ pub struct CodeToPdf {
     doc: PdfDocument,
     font_id: FontId,
     page_dimensions: (Mm, Mm),
-    max_line_chars: usize,
     text_wrapper: TextWrapper,
     pub processed_file_count: usize,
 }
@@ -256,7 +255,6 @@ impl CodeToPdf {
             doc,
             font_id,
             page_dimensions,
-            max_line_chars: 100,
             text_wrapper,
             processed_file_count: 0,
         }

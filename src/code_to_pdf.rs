@@ -74,12 +74,12 @@ impl CodeToPdf {
     fn generate_highlighted_pages(
         &mut self,
         highlighter: &mut HighlightFile,
-        path: PathBuf,
+        path: &PathBuf,
         highlighter_config: &HighlighterConfig,
     ) {
         let mut line = String::new();
         let mut line_count = 0;
-        self.init_page(&path.clone());
+        self.init_page(path);
         let mut has_added_text = false;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
@@ -161,8 +161,8 @@ impl CodeToPdf {
     }
 
     /// Generates a page containing the image at the path given
-    fn generate_image_page(&mut self, path: PathBuf) {
-        let bytes = if let Ok(b) = fs::read(path.clone()) {
+    fn generate_image_page(&mut self, path: &PathBuf) {
+        let bytes = if let Ok(b) = fs::read(path) {
             b
         } else {
             return;
@@ -172,7 +172,7 @@ impl CodeToPdf {
         } else {
             return;
         };
-        self.init_page(&path.clone());
+        self.init_page(path);
         let image_id = self.doc.add_image(&image);
         let pg_x_dpi = self.page_dimensions.0.into_pt().into_px(300.0).0;
         let pg_y_dpi = self.page_dimensions.1.into_pt().into_px(300.0).0;
@@ -212,17 +212,17 @@ impl CodeToPdf {
         self.processed_file_count += 1;
         match file.extension().and_then(OsStr::to_str) {
             Some("jpg" | "jpeg" | "png" | "ico" | "bmp" | "webp") => {
-                self.generate_image_page(file);
+                self.generate_image_page(&file);
                 Ok(())
             }
             _ => {
                 let mut highlighter = HighlightFile::new(
-                    file.clone(),
+                    &file,
                     &highlighter_config.syntax_set,
                     &highlighter_config.theme_set.themes["InspiredGitHub"],
                 )?;
 
-                self.generate_highlighted_pages(&mut highlighter, file.clone(), highlighter_config);
+                self.generate_highlighted_pages(&mut highlighter, &file, highlighter_config);
 
                 Ok(())
             }

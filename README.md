@@ -13,10 +13,18 @@ Converts a folder of source code to a fully syntax-highlighted PDF
 
 ## Installation
 
-### From [crates.io](https://crates.io)
+### From [crates.io](https://crates.io/crates/code-to-pdf)
 
 ```bash
 cargo install code-to-pdf
+```
+
+### Using `cargo binstall`
+
+Installs a pre-built binary if it is available for your system
+
+```bash
+cargo binstall code-to-pdf
 ```
 
 ### From this repository

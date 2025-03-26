@@ -10,6 +10,7 @@ Converts a folder of source code to a fully syntax-highlighted PDF
 - Error-tolerant
 - Configurable (custom file exclusions, output filename, fonts)
 - Displays images
+- Respects ignore globs in `.ignore` and `.gitignore` (uses [ignore](https://crates.io/crates/ignore))
 
 ## Installation
 

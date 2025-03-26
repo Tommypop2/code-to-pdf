@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, fs, io::BufRead, path::PathBuf};
+use std::{ffi::OsStr, fs, io::BufRead, path::Path};
 
 use ignore::Walk;
 use printpdf::{
@@ -27,6 +27,7 @@ impl HighlighterConfig {
         }
     }
 }
+
 /// Main struct for generating PDFs.
 /// It handles almost the entire process of reading and highlighting code,
 /// as well as actually writing it to the PDF
@@ -47,7 +48,7 @@ impl CodeToPdf {
     }
 
     /// Initialises `current_page_contents` with basic contents
-    fn init_page(&mut self, path: &PathBuf) {
+    fn init_page(&mut self, path: &Path) {
         // Should never be called on a non-empty `current_page_contents`, so check it in debug mode
         debug_assert_eq!(self.current_page_contents.len(), 0);
 
@@ -61,8 +62,8 @@ impl CodeToPdf {
         );
     }
     /// Increment given `line_count`. Begin a new page if it's too high
-		/// Returns `true` if a new page is created
-    fn increment_line_count(&mut self, line_count: &mut u32, path: &PathBuf) -> bool {
+    /// Returns `true` if a new page is created
+    fn increment_line_count(&mut self, line_count: &mut u32, path: &Path) -> bool {
         *line_count += 1;
         if *line_count > 54 {
             self.save_page();
@@ -77,7 +78,7 @@ impl CodeToPdf {
     fn generate_highlighted_pages(
         &mut self,
         highlighter: &mut HighlightFile,
-        path: &PathBuf,
+        path: &Path,
         highlighter_config: &HighlighterConfig,
     ) {
         let mut line = String::new();
@@ -165,7 +166,7 @@ impl CodeToPdf {
     }
 
     /// Generates a page containing the image at the path given
-    fn generate_image_page(&mut self, path: &PathBuf) {
+    fn generate_image_page(&mut self, path: &Path) {
         let bytes = if let Ok(b) = fs::read(path) {
             b
         } else {
@@ -209,7 +210,7 @@ impl CodeToPdf {
     /// Generates pages for a file
     pub fn process_file(
         &mut self,
-        file: PathBuf,
+        file: &Path,
         highlighter_config: &HighlighterConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
         println!("Generating pages for {}", file.display());
@@ -238,9 +239,7 @@ impl CodeToPdf {
             match result {
                 Ok(entry) => {
                     if entry.file_type().is_some_and(|f| f.is_file()) {
-                        if let Err(err) =
-                            self.process_file(entry.path().to_path_buf(), &highlighter_config)
-                        {
+                        if let Err(err) = self.process_file(&entry.path(), &highlighter_config) {
                             println!("ERROR: {}", err)
                         }
                     }

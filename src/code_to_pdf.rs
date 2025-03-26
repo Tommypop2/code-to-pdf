@@ -61,11 +61,16 @@ impl CodeToPdf {
             &mut self.text_wrapper,
         );
     }
+    /// Computes maximum number of lines that can be displayed on a page
+    fn max_line_count(&self) -> u32 {
+        ((self.page_dimensions.1 - Mm(20.0)).into_pt().0 / (self.text_wrapper.font_size() * 1.2)).floor()
+            as u32
+    }
     /// Increment given `line_count`. Begin a new page if it's too high
     /// Returns `true` if a new page is created
     fn increment_line_count(&mut self, line_count: &mut u32, path: &Path) -> bool {
         *line_count += 1;
-        if *line_count > 54 {
+        if *line_count > self.max_line_count() {
             self.save_page();
             self.init_page(path);
             *line_count = 0;
@@ -235,6 +240,7 @@ impl CodeToPdf {
     }
     /// Consumes entire walker
     pub fn process_files(&mut self, walker: Walk, highlighter_config: HighlighterConfig) {
+        dbg!(self.max_line_count());
         for result in walker {
             match result {
                 Ok(entry) => {

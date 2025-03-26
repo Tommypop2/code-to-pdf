@@ -43,3 +43,27 @@ c2pdf .
 ```
 
 This walks the current folder and generates a syntax-highlighted PDF of all files in that folder
+
+### Excluding paths
+
+```bash
+c2pdf . --exclude pnpm-lock.yaml,*.lock
+```
+
+### Custom output path
+
+```bash
+c2pdf . --out custom_name.pdf
+```
+
+### Setting the font
+
+```bash
+c2pdf . --font fonts/Helvetica.ttf
+```
+
+### Setting font size
+
+```bash
+c2pdf . --font-size 12.5 # 12.0 by default
+```

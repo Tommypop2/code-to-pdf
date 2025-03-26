@@ -14,7 +14,9 @@ pub fn init_page(
     wrapper: &mut TextWrapper,
 ) {
     let mut new_contents = vec![
-        Op::SetLineHeight { lh: Pt(14.0) },
+        Op::SetLineHeight {
+            lh: Pt(font_size * 1.2),
+        },
         Op::SetFontSize {
             size: Pt(font_size),
             font: font_id.clone(),

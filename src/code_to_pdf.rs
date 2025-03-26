@@ -61,12 +61,16 @@ impl CodeToPdf {
         );
     }
     /// Increment given `line_count`. Begin a new page if it's too high
-    fn increment_line_count(&mut self, line_count: &mut u32, path: &PathBuf) {
+		/// Returns `true` if a new page is created
+    fn increment_line_count(&mut self, line_count: &mut u32, path: &PathBuf) -> bool {
         *line_count += 1;
         if *line_count > 54 {
             self.save_page();
             self.init_page(path);
             *line_count = 0;
+            true
+        } else {
+            false
         }
     }
     /// Generates all the pages for a file
@@ -147,8 +151,9 @@ impl CodeToPdf {
 
             // Split text into chunks the maximum width of the view
 
-            self.increment_line_count(&mut line_count, path);
-            self.current_page_contents.push(Op::AddLineBreak);
+            if !self.increment_line_count(&mut line_count, path) {
+                self.current_page_contents.push(Op::AddLineBreak);
+            }
             line.clear();
         }
         // Clear page if no text has been added to it

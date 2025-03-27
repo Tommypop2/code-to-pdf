@@ -5,7 +5,6 @@ use std::{
     cmp::Ordering,
     fs::{self, File},
 };
-use syntect::highlighting::ThemeSet;
 use text_manipulation::TextWrapper;
 mod helpers;
 mod text_manipulation;
@@ -89,7 +88,7 @@ fn main() {
     let font = ParsedFont::from_bytes(&font_bytes, 0, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
     let ss = two_face::syntax::extra_newlines();
-    let ts = ThemeSet::load_defaults();
+    let ts = two_face::theme::extra();
     let walker = WalkBuilder::new(path.clone())
         .overrides({
             let mut builder = OverrideBuilder::new(path);
@@ -119,7 +118,11 @@ fn main() {
         page_dimensions,
         TextWrapper::new(&font_bytes, args.font_size),
     );
-    let highlighter_config = HighlighterConfig::new(ss, ts.themes["InspiredGitHub"].clone());
+    let highlighter_config = HighlighterConfig::new(
+        ss,
+        ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
+            .clone(),
+    );
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);
     let processed_file_count = c2pdf.processed_file_count;

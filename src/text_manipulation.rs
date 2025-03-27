@@ -44,7 +44,7 @@ pub struct TextWrapper {
 }
 
 impl TextWrapper {
-    pub fn new(font_bytes: &[u8], font_size: f32, max_width: Mm) -> Self {
+    pub fn new(font_bytes: &[u8], font_size: f32) -> Self {
         Self {
             rasterize_cache: HashMap::new(),
             font: Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),

@@ -2,8 +2,8 @@ use std::{ffi::OsStr, fs, io::BufRead, path::Path};
 
 use ignore::Walk;
 use printpdf::{
-    FontId, Mm, Op, PdfDocument, PdfPage, Px, RawImage, TextItem, XObjectRotation,
-    XObjectTransform, color,
+    FontId, Op, PdfDocument, PdfPage, Px, RawImage, TextItem, XObjectRotation, XObjectTransform,
+    color,
 };
 use syntect::{
     easy::HighlightFile,
@@ -231,17 +231,17 @@ impl CodeToPdf {
         self.processed_file_count += 1;
         match file.extension().and_then(OsStr::to_str) {
             Some("jpg" | "jpeg" | "png" | "ico" | "bmp" | "webp") => {
-                self.generate_image_page(&file);
+                self.generate_image_page(file);
                 Ok(())
             }
             _ => {
                 let mut highlighter = HighlightFile::new(
-                    &file,
+                    file,
                     &highlighter_config.syntax_set,
                     &highlighter_config.theme_set.themes["InspiredGitHub"],
                 )?;
 
-                self.generate_highlighted_pages(&mut highlighter, &file, highlighter_config);
+                self.generate_highlighted_pages(&mut highlighter, file, highlighter_config);
 
                 Ok(())
             }
@@ -254,7 +254,7 @@ impl CodeToPdf {
             match result {
                 Ok(entry) => {
                     if entry.file_type().is_some_and(|f| f.is_file()) {
-                        if let Err(err) = self.process_file(&entry.path(), &highlighter_config) {
+                        if let Err(err) = self.process_file(entry.path(), &highlighter_config) {
                             println!("ERROR: {}", err)
                         }
                     }

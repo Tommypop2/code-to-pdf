@@ -1,4 +1,5 @@
 use core::f32;
+use helpers::Dimensions;
 use printpdf::*;
 use std::{
     cmp::Ordering,
@@ -53,7 +54,7 @@ struct Arguments {
 fn main() {
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
-    let page_dimensions = (Mm(210.0), Mm(297.0));
+    let page_dimensions = Dimensions::new(Mm(210.0), Mm(297.0));
     let mut doc = PdfDocument::new(&args.name);
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
     let font_bytes = match args.font {

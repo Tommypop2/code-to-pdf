@@ -11,7 +11,10 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::{helpers::init_page, text_manipulation::TextWrapper};
+use crate::{
+    helpers::{Dimensions, init_page},
+    text_manipulation::TextWrapper,
+};
 
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
@@ -35,7 +38,7 @@ pub struct CodeToPdf {
     current_page_contents: Vec<Op>,
     doc: PdfDocument,
     font_id: FontId,
-    page_dimensions: (Mm, Mm),
+    page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
     pub processed_file_count: usize,
 }
@@ -43,7 +46,11 @@ impl CodeToPdf {
     /// Saves the current page contents to the document, and clears `current_page_contents`
     fn save_page(&mut self) {
         let contents = std::mem::take(&mut self.current_page_contents);
-        let page = PdfPage::new(self.page_dimensions.0, self.page_dimensions.1, contents);
+        let page = PdfPage::new(
+            self.page_dimensions.width,
+            self.page_dimensions.height,
+            contents,
+        );
         self.doc.pages.push(page);
     }
 
@@ -54,7 +61,7 @@ impl CodeToPdf {
 
         init_page(
             &mut self.current_page_contents,
-            self.page_dimensions,
+            &self.page_dimensions,
             self.font_id.clone(),
             self.text_wrapper.font_size(),
             path,
@@ -63,8 +70,8 @@ impl CodeToPdf {
     }
     /// Computes maximum number of lines that can be displayed on a page
     fn max_line_count(&self) -> u32 {
-        ((self.page_dimensions.1 - Mm(20.0)).into_pt().0 / (self.text_wrapper.font_size() * 1.2)).floor()
-            as u32
+        let max_height = self.page_dimensions.max_text_height();
+        ((max_height).into_pt().0 / (self.text_wrapper.font_size() * 1.2)).floor() as u32
     }
     /// Increment given `line_count`. Begin a new page if it's too high
     /// Returns `true` if a new page is created
@@ -113,7 +120,7 @@ impl CodeToPdf {
             for (style, text) in regions {
                 line_width += self.text_wrapper.get_width(text);
                 // If current line is getting too long, add a line break
-                if line_width > self.text_wrapper.max_width() {
+                if line_width > self.page_dimensions.max_text_width().into_pt().0 {
                     self.increment_line_count(&mut line_count, path);
                     self.current_page_contents.push(Op::AddLineBreak);
                     line_width = 0.0;
@@ -128,7 +135,9 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-                let lines = self.text_wrapper.split_into_lines(text);
+                let lines = self
+                    .text_wrapper
+                    .split_into_lines(text, self.page_dimensions.max_text_width());
                 // If only a single line, then no new lines are going to be made (as we're processing a region here)
                 match lines.len() {
                     1 => {
@@ -184,8 +193,8 @@ impl CodeToPdf {
         };
         self.init_page(path);
         let image_id = self.doc.add_image(&image);
-        let pg_x_dpi = self.page_dimensions.0.into_pt().into_px(300.0).0;
-        let pg_y_dpi = self.page_dimensions.1.into_pt().into_px(300.0).0;
+        let pg_x_dpi = self.page_dimensions.width.into_pt().into_px(300.0).0;
+        let pg_y_dpi = self.page_dimensions.height.into_pt().into_px(300.0).0;
 
         let x_scaling = pg_x_dpi as f32 / image.width as f32;
         let y_scaling = pg_y_dpi as f32 / image.height as f32;
@@ -257,7 +266,7 @@ impl CodeToPdf {
     pub fn new(
         doc: PdfDocument,
         font_id: FontId,
-        page_dimensions: (Mm, Mm),
+        page_dimensions: Dimensions,
         text_wrapper: TextWrapper,
     ) -> Self {
         Self {

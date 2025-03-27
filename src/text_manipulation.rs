@@ -41,7 +41,6 @@ pub struct TextWrapper {
     rasterize_cache: HashMap<char, f32>,
     font: Font,
     font_size: f32,
-    max_width: Mm,
 }
 
 impl TextWrapper {
@@ -50,15 +49,14 @@ impl TextWrapper {
             rasterize_cache: HashMap::new(),
             font: Font::from_bytes(font_bytes, FontSettings::default()).unwrap(),
             font_size,
-            max_width,
         }
     }
-    pub fn split_into_lines(&mut self, txt: &str) -> Vec<String> {
+    pub fn split_into_lines(&mut self, txt: &str, max_width: Mm) -> Vec<String> {
         split_into_lines_fontdue(
             txt,
             &self.font,
             self.font_size,
-            self.max_width(),
+            max_width.into_pt().0,
             &mut self.rasterize_cache,
         )
     }
@@ -76,9 +74,6 @@ impl TextWrapper {
             total_width += char_width;
         }
         total_width
-    }
-    pub fn max_width(&self) -> f32 {
-        self.max_width.into_pt().0
     }
     pub fn font_size(&self) -> f32 {
         self.font_size

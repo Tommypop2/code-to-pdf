@@ -11,15 +11,26 @@ pub struct Dimensions {
     margin_top: Mm,
     margin_bottom: Mm,
 }
+impl Default for Dimensions {
+    /// Initialises a default `Dimensions`.
+    /// Default document size is A4
+    fn default() -> Self {
+        Self {
+            width: Mm(210.0),
+            height: Mm(297.0),
+            margin_top: Mm(20.0),
+            margin_bottom: Mm(5.0),
+            margin_left: Mm(10.0),
+            margin_right: Mm(10.0),
+        }
+    }
+}
 impl Dimensions {
     pub fn new_default_margins(width: Mm, height: Mm) -> Self {
         Self {
             width,
             height,
-            margin_top: Mm(20.0),
-            margin_bottom: Mm(5.0),
-            margin_left: Mm(10.0),
-            margin_right: Mm(10.0),
+            ..Default::default()
         }
     }
     pub fn new(

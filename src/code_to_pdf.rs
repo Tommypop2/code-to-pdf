@@ -7,7 +7,7 @@ use printpdf::{
 };
 use syntect::{
     easy::HighlightFile,
-    highlighting::{Color, Style, ThemeSet},
+    highlighting::{Color, Style, Theme},
     parsing::SyntaxSet,
 };
 
@@ -18,14 +18,14 @@ use crate::{
 
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
-    theme_set: ThemeSet,
+    theme: Theme,
     max_line_len_to_highlight: usize,
 }
 impl HighlighterConfig {
-    pub fn new(syntax_set: SyntaxSet, theme_set: ThemeSet) -> Self {
+    pub fn new(syntax_set: SyntaxSet, theme: Theme) -> Self {
         Self {
             syntax_set,
-            theme_set,
+            theme,
             max_line_len_to_highlight: 20_000,
         }
     }
@@ -238,7 +238,7 @@ impl CodeToPdf {
                 let mut highlighter = HighlightFile::new(
                     file,
                     &highlighter_config.syntax_set,
-                    &highlighter_config.theme_set.themes["InspiredGitHub"],
+                    &highlighter_config.theme,
                 )?;
 
                 self.generate_highlighted_pages(&mut highlighter, file, highlighter_config);

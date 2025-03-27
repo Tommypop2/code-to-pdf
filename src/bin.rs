@@ -119,7 +119,7 @@ fn main() {
         page_dimensions,
         TextWrapper::new(&font_bytes, args.font_size),
     );
-    let highlighter_config = HighlighterConfig::new(ss, ts);
+    let highlighter_config = HighlighterConfig::new(ss, ts.themes["InspiredGitHub"].clone());
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);
     let processed_file_count = c2pdf.processed_file_count;

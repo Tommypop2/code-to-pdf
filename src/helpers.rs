@@ -12,14 +12,31 @@ pub struct Dimensions {
     margin_bottom: Mm,
 }
 impl Dimensions {
-    pub fn new(width: Mm, height: Mm) -> Self {
+    pub fn new_default_margins(width: Mm, height: Mm) -> Self {
         Self {
             width,
             height,
+            margin_top: Mm(20.0),
+            margin_bottom: Mm(5.0),
             margin_left: Mm(10.0),
             margin_right: Mm(10.0),
-            margin_top: Mm(20.0),
-            margin_bottom: Mm(0.0),
+        }
+    }
+    pub fn new(
+        width: Mm,
+        height: Mm,
+        margin_top: Mm,
+        margin_bottom: Mm,
+        margin_left: Mm,
+        margin_right: Mm,
+    ) -> Self {
+        Self {
+            width,
+            height,
+            margin_left,
+            margin_right,
+            margin_top,
+            margin_bottom,
         }
     }
     pub fn max_text_width(&self) -> Mm {

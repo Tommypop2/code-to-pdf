@@ -50,11 +50,34 @@ struct Arguments {
     /// size of the font in the PDF in point
     #[argh(option, default = "12.0")]
     font_size: f32,
+
+    /// size of the top margin (20.0 by default)
+    #[argh(option, default = "20.0")]
+    margin_top: f32,
+
+    /// size of the bottom margin (5.0 by default)
+    #[argh(option, default = "5.0")]
+    margin_bottom: f32,
+
+    /// size of the left margin (10.0 by default)
+    #[argh(option, default = "10.0")]
+    margin_left: f32,
+
+    /// size of the right margin (10.0 by default)
+    #[argh(option, default = "10.0")]
+    margin_right: f32,
 }
 fn main() {
     let args: Arguments = argh::from_env();
     let path = args.walk_path;
-    let page_dimensions = Dimensions::new(Mm(210.0), Mm(297.0));
+    let page_dimensions = Dimensions::new(
+        Mm(210.0),
+        Mm(297.0),
+        Mm(args.margin_top),
+        Mm(args.margin_bottom),
+        Mm(args.margin_left),
+        Mm(args.margin_right),
+    );
     let mut doc = PdfDocument::new(&args.name);
     let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
     let font_bytes = match args.font {

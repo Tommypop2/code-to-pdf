@@ -4,7 +4,7 @@ Converts a folder of source code to a fully syntax-highlighted PDF
 
 ## Features
 
-- Syntax highlights code (uses [two-face](https://crates.io/crates/two-face) for syntax definitions)
+- Syntax highlights code (uses [syntect](https://github.com/trishume/syntect) for highlighting and [two-face](https://crates.io/crates/two-face) for syntax definitions)
 - Automatically handles line wrapping and page overflowing
 - Fast
 - Error-tolerant

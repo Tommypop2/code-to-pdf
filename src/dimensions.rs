@@ -1,5 +1,6 @@
 use printpdf::Mm;
 
+/// Stores the dimensions of the page
 pub struct Dimensions {
     pub width: Mm,
     pub height: Mm,

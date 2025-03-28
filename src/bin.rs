@@ -1,18 +1,15 @@
+use argh::FromArgs;
+use c2pdf::code_to_pdf::{CodeToPdf, HighlighterConfig};
+use c2pdf::dimensions::Dimensions;
+use c2pdf::text_manipulation::TextWrapper;
 use core::f32;
-use helpers::Dimensions;
+use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
+use std::time::Instant;
 use std::{
     cmp::Ordering,
     fs::{self, File},
 };
-use text_manipulation::TextWrapper;
-mod helpers;
-mod text_manipulation;
-use ignore::{WalkBuilder, overrides::OverrideBuilder};
-mod code_to_pdf;
-use argh::FromArgs;
-use code_to_pdf::{CodeToPdf, HighlighterConfig};
-use std::time::Instant;
 
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;

@@ -11,10 +11,7 @@ use syntect::{
     parsing::SyntaxSet,
 };
 
-use crate::{
-    helpers::{Dimensions, init_page},
-    text_manipulation::TextWrapper,
-};
+use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
 
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,

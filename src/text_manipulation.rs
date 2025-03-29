@@ -104,7 +104,7 @@ mod tests {
             100.0,
             &mut HashMap::new(),
         );
-        assert_eq!(result.len(), 6);
+        assert_eq!(result.len(), 7);
         // Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
         assert_eq!(result.join("").replace(' ', ""), TEXT.replace(' ', ""));
     }

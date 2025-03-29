@@ -44,6 +44,8 @@ pub struct CodeToPdf {
     page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
     processed_file_count: usize,
+		// Text to put at the top of every page
+		page_text: Option<String>,
 }
 impl CodeToPdf {
     /// Initialises a new [`CodeToPdf`]
@@ -52,6 +54,7 @@ impl CodeToPdf {
         font_id: FontId,
         page_dimensions: Dimensions,
         text_wrapper: TextWrapper,
+				page_text: Option<String>,
     ) -> Self {
         Self {
             current_page_contents: vec![],
@@ -60,6 +63,7 @@ impl CodeToPdf {
             page_dimensions,
             text_wrapper,
             processed_file_count: 0,
+						page_text,
         }
     }
     /// Saves the current page contents to the document, and clears [`CodeToPdf::current_page_contents`]
@@ -84,6 +88,7 @@ impl CodeToPdf {
             self.font_id.clone(),
             self.text_wrapper.font_size(),
             path,
+            self.page_text.as_deref(),
             &mut self.text_wrapper,
         );
     }
@@ -137,7 +142,7 @@ impl CodeToPdf {
                     )]
                 };
             for (style, text) in regions {
-                line_width += self.text_wrapper.get_width(text);
+                line_width += self.text_wrapper.get_width(text).0;
                 // If current line is getting too long, add a line break
                 if line_width > self.page_dimensions.max_text_width().into_pt().0 {
                     self.increment_line_count(&mut line_count, path);

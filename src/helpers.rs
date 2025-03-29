@@ -13,6 +13,7 @@ pub fn init_page(
     font_id: FontId,
     font_size: f32,
     path: &Path,
+    additional_text: Option<&str>,
     wrapper: &mut TextWrapper,
 ) {
     let mut new_contents = vec![
@@ -41,6 +42,26 @@ pub fn init_page(
         });
         new_contents.push(Op::AddLineBreak);
     }
+    if let Some(text) = additional_text {
+        let text_width = wrapper.get_width(text);
+        new_contents.extend_from_slice(&[
+            Op::SetTextMatrix {
+                matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
+            },
+            Op::SetTextCursor {
+                pos: Point {
+                    x: (page_dimensions.width - page_dimensions.margin_right).into_pt()
+                        - text_width,
+                    y: (page_dimensions.height - Mm(7.5)).into(),
+                },
+            },
+            Op::WriteText {
+                items: vec![TextItem::Text(text.to_string())],
+                font: font_id,
+            },
+        ]);
+    }
+    // Set cursor to main body
     new_contents.extend_from_slice(&[
         // This allows me to reset the text cursor for some reason
         Op::SetTextMatrix {

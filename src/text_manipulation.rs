@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use fontdue::{Font, FontSettings};
-use printpdf::Mm;
+use printpdf::{Mm, Pt};
 
 /// Uses the [`fontdue`] text rasterizer to split text into lines less than the `max_width`
 pub fn split_into_lines_fontdue(
@@ -67,8 +67,8 @@ impl TextWrapper {
         )
     }
 
-    /// Returns the width of a given string
-    pub fn get_width(&mut self, txt: &str) -> f32 {
+    /// Returns the width of a given string in Point
+    pub fn get_width(&mut self, txt: &str) -> Pt {
         let mut total_width = 0.0;
         for ch in txt.chars() {
             let char_width = match self.rasterize_cache.get(&ch) {
@@ -81,7 +81,7 @@ impl TextWrapper {
             };
             total_width += char_width;
         }
-        total_width
+        Pt(total_width)
     }
     /// Returns the set `font_size`
     pub fn font_size(&self) -> f32 {

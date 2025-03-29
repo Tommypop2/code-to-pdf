@@ -122,7 +122,7 @@ fn main() {
     );
     let start = Instant::now();
     c2pdf.process_files(walker, highlighter_config);
-    let processed_file_count = c2pdf.processed_file_count;
+    let processed_file_count = c2pdf.processed_file_count();
     let doc = c2pdf.document();
     let num_pages = doc.pages.len();
     // let before_write = Instant::now();

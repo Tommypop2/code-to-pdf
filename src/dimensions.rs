@@ -48,9 +48,12 @@ impl Dimensions {
             margin_bottom,
         }
     }
+		/// Computes the maximum text width (in millimetres)
     pub fn max_text_width(&self) -> Mm {
         self.width - self.margin_left - self.margin_right
     }
+		/// Computes the maximum height that all the lines of text can be
+		/// on a single page
     pub fn max_text_height(&self) -> Mm {
         self.height - self.margin_top - self.margin_bottom
     }

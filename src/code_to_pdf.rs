@@ -37,10 +37,26 @@ pub struct CodeToPdf {
     font_id: FontId,
     page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
-    pub processed_file_count: usize,
+    processed_file_count: usize,
 }
 impl CodeToPdf {
-    /// Saves the current page contents to the document, and clears `current_page_contents`
+    /// Initialises a new [`CodeToPdf`]
+    pub fn new(
+        doc: PdfDocument,
+        font_id: FontId,
+        page_dimensions: Dimensions,
+        text_wrapper: TextWrapper,
+    ) -> Self {
+        Self {
+            current_page_contents: vec![],
+            doc,
+            font_id,
+            page_dimensions,
+            text_wrapper,
+            processed_file_count: 0,
+        }
+    }
+    /// Saves the current page contents to the document, and clears [`CodeToPdf::current_page_contents`]
     fn save_page(&mut self) {
         let contents = std::mem::take(&mut self.current_page_contents);
         let page = PdfPage::new(
@@ -51,9 +67,9 @@ impl CodeToPdf {
         self.doc.pages.push(page);
     }
 
-    /// Initialises `current_page_contents` with basic contents
+    /// Initialises [`CodeToPdf::current_page_contents`] with basic contents
     fn init_page(&mut self, path: &Path) {
-        // Should never be called on a non-empty `current_page_contents`, so check it in debug mode
+        // Should never be called on a non-empty current_pages_contents, so check it in debug mode
         debug_assert_eq!(self.current_page_contents.len(), 0);
 
         init_page(
@@ -70,7 +86,7 @@ impl CodeToPdf {
         let max_height = self.page_dimensions.max_text_height();
         ((max_height).into_pt().0 / (self.text_wrapper.font_size() * 1.2)).floor() as u32
     }
-    /// Increment given `line_count`. Begin a new page if it's too high
+    /// Increment given line_count. Begin a new page if it's too high
     /// Returns `true` if a new page is created
     fn increment_line_count(&mut self, line_count: &mut u32, path: &Path) -> bool {
         *line_count += 1;
@@ -260,23 +276,14 @@ impl CodeToPdf {
             }
         }
     }
-    pub fn new(
-        doc: PdfDocument,
-        font_id: FontId,
-        page_dimensions: Dimensions,
-        text_wrapper: TextWrapper,
-    ) -> Self {
-        Self {
-            current_page_contents: vec![],
-            doc,
-            font_id,
-            page_dimensions,
-            text_wrapper,
-            processed_file_count: 0,
-        }
-    }
+
     /// Consumes the instance and returns the underlying document
     pub fn document(self) -> PdfDocument {
         self.doc
+    }
+
+    /// Returns number of files processed by [`CodeToPdf::process_files`]
+    pub fn processed_file_count(&self) -> usize {
+        self.processed_file_count
     }
 }

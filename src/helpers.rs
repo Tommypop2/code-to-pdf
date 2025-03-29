@@ -24,30 +24,14 @@ pub fn init_page(
             size: Pt(font_size),
             font: font_id.clone(),
         },
-        // Write metadata
-        Op::SetTextCursor {
-            pos: Point {
-                x: page_dimensions.margin_left.into(),
-                y: (page_dimensions.height - Mm(7.5)).into(),
-            },
-        },
     ];
-    for line in wrapper.split_into_lines(
-        &path.display().to_string(),
-        page_dimensions.max_text_width(),
-    ) {
-        new_contents.push(Op::WriteText {
-            items: vec![TextItem::Text(line)],
-            font: font_id.clone(),
-        });
-        new_contents.push(Op::AddLineBreak);
-    }
+    let mut additional_text_width = 0.0;
+    // Write additional text
     if let Some(text) = additional_text {
-        let mut max_width = 0.0;
         for line in text.lines() {
             let line_width = wrapper.get_width(line).0;
-            if line_width > max_width {
-                max_width = line_width
+            if line_width > additional_text_width {
+                additional_text_width = line_width
             }
         }
         new_contents.extend_from_slice(&[
@@ -57,7 +41,7 @@ pub fn init_page(
             Op::SetTextCursor {
                 pos: Point {
                     x: (page_dimensions.width - page_dimensions.margin_right).into_pt()
-                        - Pt(max_width),
+                        - Pt(additional_text_width),
                     y: (page_dimensions.height - Mm(7.5)).into(),
                 },
             },
@@ -70,6 +54,34 @@ pub fn init_page(
             new_contents.push(Op::AddLineBreak);
         }
     }
+    new_contents.extend_from_slice(&[
+        Op::SetTextMatrix {
+            matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
+        },
+        // Write metadata
+        Op::SetTextCursor {
+            pos: Point {
+                x: page_dimensions.margin_left.into(),
+                y: (page_dimensions.height - Mm(7.5)).into(),
+            },
+        },
+    ]);
+    for line in wrapper.split_into_lines(
+        &path.display().to_string(),
+        page_dimensions.max_text_width()
+            - if additional_text.is_some() {
+                Mm::from(Pt(additional_text_width)) + Mm(5.0)
+            } else {
+                Mm(0.0)
+            },
+    ) {
+        new_contents.push(Op::WriteText {
+            items: vec![TextItem::Text(line)],
+            font: font_id.clone(),
+        });
+        new_contents.push(Op::AddLineBreak);
+    }
+
     // Set cursor to main body
     new_contents.extend_from_slice(&[
         // This allows me to reset the text cursor for some reason

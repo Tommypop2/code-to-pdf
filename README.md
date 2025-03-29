@@ -74,3 +74,11 @@ c2pdf . --font-size 12.5 # 12.0 by default
 ```bash
 c2pdf . --margin-top 20 --margin-bottom 5 --margin-left 10 --margin-right 10 # (these are the defaults)
 ```
+
+### Setting custom page text
+
+This is text that is added to every page
+
+```bash
+c2pdf . --page-text "Hello\nWorld" # (use `\n` to indicate a newline)
+```

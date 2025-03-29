@@ -1,8 +1,11 @@
+//! Primitives for wrapping text
+
 use std::collections::HashMap;
 
 use fontdue::{Font, FontSettings};
 use printpdf::Mm;
 
+/// Uses the [`fontdue`] text rasterizer to split text into lines less than the `max_width`
 pub fn split_into_lines_fontdue(
     txt: &str,
     font: &Font,
@@ -45,6 +48,7 @@ pub struct TextWrapper {
 }
 
 impl TextWrapper {
+    /// Initialises new [`TextWrapper`] from `font_bytes`, and `font_size`
     pub fn new(font_bytes: &[u8], font_size: f32) -> Self {
         Self {
             rasterize_cache: HashMap::new(),
@@ -52,7 +56,7 @@ impl TextWrapper {
             font_size,
         }
     }
-		/// Splits a given &[`str`] into a [`Vec<String>`] of lines not exceeding the `max_width`` set
+    /// Splits a given &[`str`] into a [`Vec<String>`] of lines not exceeding the `max_width` set
     pub fn split_into_lines(&mut self, txt: &str, max_width: Mm) -> Vec<String> {
         split_into_lines_fontdue(
             txt,
@@ -62,8 +66,8 @@ impl TextWrapper {
             &mut self.rasterize_cache,
         )
     }
-		
-		/// Returns the width of a given string
+
+    /// Returns the width of a given string
     pub fn get_width(&mut self, txt: &str) -> f32 {
         let mut total_width = 0.0;
         for ch in txt.chars() {
@@ -79,6 +83,7 @@ impl TextWrapper {
         }
         total_width
     }
+    /// Returns the set `font_size`
     pub fn font_size(&self) -> f32 {
         self.font_size
     }

@@ -1,3 +1,5 @@
+//! Miscellaneous helper functions
+
 use std::path::Path;
 
 use printpdf::{FontId, Mm, Op, Point, Pt, TextItem, TextMatrix, TextRenderingMode};

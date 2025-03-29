@@ -1,3 +1,5 @@
+//! Contains [`HighlighterConfig`] and [`CodeToPdf`] structs
+
 use std::{ffi::OsStr, fs, io::BufRead, path::Path};
 
 use ignore::Walk;
@@ -14,7 +16,7 @@ use syntect::{
 use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
 
 /// Configuration struct for the highlighter ([`syntect`])
-/// 
+///
 /// Contains the desired theme, syntax set, and the maximum line length to highlight
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
@@ -22,6 +24,7 @@ pub struct HighlighterConfig {
     max_line_len_to_highlight: usize,
 }
 impl HighlighterConfig {
+    /// Initialises new [`HighlighterConfig`]
     pub fn new(syntax_set: SyntaxSet, theme: Theme) -> Self {
         Self {
             syntax_set,

@@ -1,6 +1,10 @@
+//! Contains [`Dimensions`] struct and implementations to simplify passing
+//! document dimensions where needed
+
 use printpdf::Mm;
 
 /// Stores the dimensions of the page
+#[allow(missing_docs)]
 pub struct Dimensions {
     pub width: Mm,
     pub height: Mm,
@@ -24,6 +28,7 @@ impl Default for Dimensions {
     }
 }
 impl Dimensions {
+    /// Initialises new [`Dimensions`] with default margins, and given `width`, and `height`
     pub fn new_default_margins(width: Mm, height: Mm) -> Self {
         Self {
             width,
@@ -31,6 +36,7 @@ impl Dimensions {
             ..Default::default()
         }
     }
+    /// Initialises a new [`Dimensions`]
     pub fn new(
         width: Mm,
         height: Mm,
@@ -48,12 +54,12 @@ impl Dimensions {
             margin_bottom,
         }
     }
-		/// Computes the maximum text width (in millimetres)
+    /// Computes the maximum text width (in millimetres)
     pub fn max_text_width(&self) -> Mm {
         self.width - self.margin_left - self.margin_right
     }
-		/// Computes the maximum height that all the lines of text can be
-		/// on a single page
+    /// Computes the maximum height that all the lines of text can be
+    /// on a single page
     pub fn max_text_height(&self) -> Mm {
         self.height - self.margin_top - self.margin_bottom
     }

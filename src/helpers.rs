@@ -43,7 +43,13 @@ pub fn init_page(
         new_contents.push(Op::AddLineBreak);
     }
     if let Some(text) = additional_text {
-        let text_width = wrapper.get_width(text);
+        let mut max_width = 0.0;
+        for line in text.lines() {
+            let line_width = wrapper.get_width(line).0;
+            if line_width > max_width {
+                max_width = line_width
+            }
+        }
         new_contents.extend_from_slice(&[
             Op::SetTextMatrix {
                 matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
@@ -51,15 +57,18 @@ pub fn init_page(
             Op::SetTextCursor {
                 pos: Point {
                     x: (page_dimensions.width - page_dimensions.margin_right).into_pt()
-                        - text_width,
+                        - Pt(max_width),
                     y: (page_dimensions.height - Mm(7.5)).into(),
                 },
             },
-            Op::WriteText {
-                items: vec![TextItem::Text(text.to_string())],
-                font: font_id,
-            },
         ]);
+        for line in text.lines() {
+            new_contents.push(Op::WriteText {
+                items: vec![TextItem::Text(line.to_string())],
+                font: font_id.clone(),
+            });
+            new_contents.push(Op::AddLineBreak);
+        }
     }
     // Set cursor to main body
     new_contents.extend_from_slice(&[

@@ -63,7 +63,7 @@ struct Arguments {
     #[argh(option, default = "10.0")]
     margin_right: f32,
 
-		/// text to add to (the top of) every page
+    /// text to add to (the top of) every page
     #[argh(option)]
     page_text: Option<String>,
 }
@@ -118,7 +118,7 @@ fn main() {
         font_id,
         page_dimensions,
         TextWrapper::new(&font_bytes, args.font_size),
-				args.page_text
+        args.page_text,
     );
     let highlighter_config = HighlighterConfig::new(
         ss,

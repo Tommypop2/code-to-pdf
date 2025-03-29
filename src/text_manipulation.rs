@@ -26,17 +26,17 @@ pub fn split_into_lines_fontdue(
             }
         };
         // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
-        if current_line_width + width >= max_width
-            || (max_width - (current_line_width + width) < 5.0) && ch.is_whitespace()
+        if (current_line_width + width >= max_width)
+            || ((max_width - (current_line_width + width) < 30.0) && ch.is_whitespace())
         {
             lines.push(line_buf.trim().to_string());
             line_buf.clear();
             current_line_width = 0.0;
         }
         line_buf.push(ch);
-        current_line_width += width
+        current_line_width += width;
     }
-    lines.push(line_buf);
+    lines.push(line_buf.trim().to_string());
     lines
 }
 

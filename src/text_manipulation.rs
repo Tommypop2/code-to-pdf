@@ -37,6 +37,7 @@ pub fn split_into_lines_fontdue(
     lines
 }
 
+/// Handles wrapping text into multiple lines
 pub struct TextWrapper {
     rasterize_cache: HashMap<char, f32>,
     font: Font,
@@ -51,6 +52,7 @@ impl TextWrapper {
             font_size,
         }
     }
+		/// Splits a given &[`str`] into a [`Vec<String>`] of lines not exceeding the `max_width`` set
     pub fn split_into_lines(&mut self, txt: &str, max_width: Mm) -> Vec<String> {
         split_into_lines_fontdue(
             txt,
@@ -60,6 +62,8 @@ impl TextWrapper {
             &mut self.rasterize_cache,
         )
     }
+		
+		/// Returns the width of a given string
     pub fn get_width(&mut self, txt: &str) -> f32 {
         let mut total_width = 0.0;
         for ch in txt.chars() {

@@ -13,6 +13,9 @@ use syntect::{
 
 use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
 
+/// Configuration struct for the highlighter ([`syntect`])
+/// 
+/// Contains the desired theme, syntax set, and the maximum line length to highlight
 pub struct HighlighterConfig {
     syntax_set: SyntaxSet,
     theme: Theme,

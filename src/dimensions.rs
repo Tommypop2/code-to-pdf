@@ -15,7 +15,7 @@ pub struct Dimensions {
 }
 impl Default for Dimensions {
     /// Initialises a default `Dimensions`.
-    /// Default document size is A4
+    /// Default document size is A4 (210mm by 297mm)
     fn default() -> Self {
         Self {
             width: Mm(210.0),

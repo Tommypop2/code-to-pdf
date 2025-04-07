@@ -59,8 +59,14 @@ c2pdf . --out custom_name.pdf
 
 ### Setting the font
 
+Supports loading fonts from a path or the system fonts
+
 ```bash
+# From a path
 c2pdf . --font fonts/Helvetica.ttf
+
+# From system fonts
+c2pdf . --font "Arial"
 ```
 
 ### Setting font size

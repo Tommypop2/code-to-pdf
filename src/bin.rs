@@ -1,15 +1,13 @@
 use argh::FromArgs;
 use c2pdf::code_to_pdf::{CodeToPdf, HighlighterConfig};
 use c2pdf::dimensions::Dimensions;
+use c2pdf::font_loader::load_font;
 use c2pdf::text_manipulation::TextWrapper;
 use core::f32;
 use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
 use std::time::Instant;
-use std::{
-    cmp::Ordering,
-    fs::{self, File},
-};
+use std::{cmp::Ordering, fs::File};
 
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
@@ -39,7 +37,9 @@ struct Arguments {
     #[argh(option, default = "String::from(\"Project Code\")")]
     name: String,
 
-    /// optional path to font file, code-to-pdf will use the bundled `Helvetica` font by default
+    /// name (will load from system fonts) or path of font to use
+    ///
+    /// code-to-pdf will use the bundled `Helvetica` font by default, or if the font provided cannot be loaded
     #[argh(option)]
     font: Option<String>,
 
@@ -79,14 +79,12 @@ fn main() {
         Mm(args.margin_right),
     );
     let mut doc = PdfDocument::new(&args.name);
-    let helvetica_bytes = include_bytes!("../fonts/Helvetica.ttf");
-    let font_bytes = match args.font {
-        Some(path) => fs::read(path).unwrap(),
-        // Don't really like this heap allocation here but it's not at all in the program's critical
-        // path so is fine
-        None => helvetica_bytes.to_vec(),
-    };
-    let font = ParsedFont::from_bytes(&font_bytes, 0, &mut vec![]).unwrap();
+    let (font_bytes, used_bundled) = load_font(args.font);
+    if used_bundled {
+        eprintln!("Unable to load provided font")
+    }
+    let font_bytes = &*font_bytes;
+    let font = ParsedFont::from_bytes(font_bytes, 0, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
     let ss = two_face::syntax::extra_newlines();
     let ts = two_face::theme::extra();
@@ -117,7 +115,7 @@ fn main() {
         doc,
         font_id,
         page_dimensions,
-        TextWrapper::new(&font_bytes, args.font_size),
+        TextWrapper::new(font_bytes, args.font_size),
         args.page_text,
     );
     let highlighter_config = HighlighterConfig::new(

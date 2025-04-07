@@ -15,6 +15,8 @@ targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-
 install-path = "CARGO_HOME"
 # Whether to install an updater program
 install-updater = false
+# Build binary with all features enabled
+all-features = true
 
 [dist.dependencies.apt]
 libfontconfig1-dev = "*"

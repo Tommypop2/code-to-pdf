@@ -7,6 +7,8 @@ jobs:
   cargo_check:
     runs-on: ubuntu-latest
     steps:
+      - name: Install libfontconfig1-dev
+        run: sudo apt install libfontconfig1-dev
       - uses: actions/checkout@v4
       - name: Run `cargo check`
         run: cargo check

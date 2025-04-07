@@ -31,12 +31,13 @@ fn load_font_system(name: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Er
         return Ok(data);
     }
 }
-
+/// Load font bytes from a specific path
 fn load_font_path(path: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Error>> {
     let bytes = fs::read(path)?;
     let arc = Arc::new(bytes);
     Ok(arc)
 }
+/// Loads bytes from bundled font
 fn bundled_font_bytes() -> Arc<Vec<u8>> {
     let bytes = include_bytes!("../fonts/Helvetica.ttf").to_vec();
     Arc::new(bytes)

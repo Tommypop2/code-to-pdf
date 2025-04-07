@@ -28,7 +28,13 @@ Installs a pre-built binary if it is available for your system
 cargo binstall code-to-pdf
 ```
 
-### From this repository
+### Using artefacts on Github Releases
+
+Navigate to the latest [release](https://github.com/Tommypop2/code-to-pdf/releases)
+
+Run the correct installer script for your system, or just download the correct binary directly
+
+### Build from repository source
 
 ```bash
 git clone https://github.com/Tommypop2/code-to-pdf

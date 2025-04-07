@@ -19,6 +19,9 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install libfontconfig1-dev
+        run: sudo apt install libfontconfig1-dev
+
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@main
         env:

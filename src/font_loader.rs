@@ -1,25 +1,37 @@
 //! Functions for loading fonts from the system fonts, a path, or using the bundled `Helvetica` font
 
+#[cfg(feature = "font-loading")]
+use font_kit::family_name::FamilyName;
+#[cfg(feature = "font-loading")]
+use font_kit::properties::Properties;
+#[cfg(feature = "font-loading")]
+use font_kit::source::SystemSource;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use font_kit::family_name::FamilyName;
-use font_kit::properties::Properties;
-use font_kit::source::SystemSource;
-
 /// Returns an atomicically reference counted reference to the underlying font data of a system font
+///
+/// This function always returns an error if the `font-loading` feature is disabled
 fn load_font_system(name: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Error>> {
-    let handle =
-        SystemSource::new().select_best_match(&[FamilyName::Title(name)], &Properties::new())?;
-    let font = handle.load()?;
-    let data = if let Some(d) = font.copy_font_data() {
-        d
-    } else {
-        return Err("Unable to load font data".into());
-    };
-    Ok(data)
+    #[cfg(not(feature = "font-loading"))]
+    {
+        Err("font-loading feature is disabled".into())
+    }
+    #[cfg(feature = "font-loading")]
+    {
+        let handle = SystemSource::new()
+            .select_best_match(&[FamilyName::Title(name)], &Properties::new())?;
+        let font = handle.load()?;
+        let data = if let Some(d) = font.copy_font_data() {
+            d
+        } else {
+            return Err("Unable to load font data".into());
+        };
+        return Ok(data);
+    }
 }
+
 fn load_font_path(path: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Error>> {
     let bytes = fs::read(path)?;
     let arc = Arc::new(bytes);
@@ -30,11 +42,7 @@ fn bundled_font_bytes() -> Arc<Vec<u8>> {
     Arc::new(bytes)
 }
 fn is_path(s: &str) -> bool {
-    if PathBuf::from(s).extension().is_some() || s.len() > 31 || s.starts_with('.') {
-        return true;
-    } else {
-        false
-    }
+    PathBuf::from(s).extension().is_some() || s.len() > 31 || s.starts_with('.')
 }
 /// Loads a given font - falling back to the bundled font if loading from the system, or from the given path fails
 pub fn load_font(name_or_path: Option<String>) -> (Arc<Vec<u8>>, bool) {

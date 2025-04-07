@@ -5,16 +5,19 @@ edition = "2024"
 repository = "https://github.com/Tommypop2/code-to-pdf"
 license = "MIT"
 description = "Generates a syntax-highlighted PDF of your source code"
+
 [lib]
 name = "c2pdf"
 path = "src/lib.rs"
+
 [[bin]]
 name = "c2pdf"
 path = "src/bin.rs"
+required-features = ["font-loading"]
 
 [dependencies]
 argh = "0.1.13"
-font-kit = "0.14.2"
+font-kit = { version = "0.14.2", optional = true }
 fontdue = "0.9.3"
 ignore = "0.4.23"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
@@ -24,10 +27,13 @@ printpdf = { version = "0.8.2", default-features = false, features = [
 	"png",
 	"ico",
 	"bmp",
-	"webp"
+	"webp",
 ] }
 syntect = "5.2.0"
 two-face = "0.4.3"
+
+[features]
+font-loading = ["dep:font-kit"]
 
 [profile.release]
 lto = "fat"

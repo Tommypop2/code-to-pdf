@@ -8,7 +8,7 @@ use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
 use std::time::Instant;
 use std::{cmp::Ordering, fs::File};
-
+use jwalk::WalkDir;
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
 fn vec_from_string(s: &str) -> Result<StringVec, String> {
@@ -88,29 +88,30 @@ fn main() {
     let font_id = doc.add_font(&font);
     let ss = two_face::syntax::extra_newlines();
     let ts = two_face::theme::extra();
-    let walker = WalkBuilder::new(path.clone())
-        .overrides({
-            let mut builder = OverrideBuilder::new(path);
-            for exclusion in args.exclude {
-                builder.add(&("!".to_string() + &exclusion)).unwrap();
-            }
-            builder.build().unwrap()
-        })
-        // Ensure that files are given higher precidence than folders
-        // (want files in a folder to be printed breadth-first)
-        .sort_by_file_path(|x, y| {
-            {
-                if x.is_dir() && !y.is_dir() {
-                    Ordering::Less
-                } else if y.is_dir() && !x.is_dir() {
-                    Ordering::Greater
-                } else {
-                    Ordering::Equal
-                }
-            }
-            .reverse()
-        })
-        .build();
+    // let walker = WalkBuilder::new(path.clone())
+    //     .overrides({
+    //         let mut builder = OverrideBuilder::new(path);
+    //         for exclusion in args.exclude {
+    //             builder.add(&("!".to_string() + &exclusion)).unwrap();
+    //         }
+    //         builder.build().unwrap()
+    //     })
+    //     // Ensure that files are given higher precidence than folders
+    //     // (want files in a folder to be printed breadth-first)
+    //     .sort_by_file_path(|x, y| {
+    //         {
+    //             if x.is_dir() && !y.is_dir() {
+    //                 Ordering::Less
+    //             } else if y.is_dir() && !x.is_dir() {
+    //                 Ordering::Greater
+    //             } else {
+    //                 Ordering::Equal
+    //             }
+    //         }
+    //         .reverse()
+    //     })
+    //     .build();
+		let walker = WalkDir::new(path.clone()).sort(true);
     let mut c2pdf = CodeToPdf::new(
         doc,
         font_id,

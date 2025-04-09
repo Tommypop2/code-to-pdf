@@ -3,6 +3,7 @@
 use std::{ffi::OsStr, fs, io::BufRead, path::Path};
 
 use ignore::Walk;
+use jwalk::WalkDirGeneric;
 use printpdf::{
     FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem, XObjectRotation,
     XObjectTransform, color,
@@ -273,12 +274,27 @@ impl CodeToPdf {
         }
     }
     /// Consumes entire walker
-    pub fn process_files(&mut self, walker: Walk, highlighter_config: HighlighterConfig) {
+    pub fn process_files(
+        &mut self,
+        walker: WalkDirGeneric<((), ())>,
+        highlighter_config: HighlighterConfig,
+    ) {
         for result in walker {
             match result {
                 Ok(entry) => {
-                    if entry.file_type().is_some_and(|f| f.is_file()) {
-                        if let Err(err) = self.process_file(entry.path(), &highlighter_config) {
+                    let path = entry.path();
+                    let path = path.to_str().unwrap_or("");
+                    if path.contains("target")
+                        || path.contains(".jpg")
+                        || path.contains(".lock")
+                        || path.contains("motorious_readme_test")
+                        || path.contains(".pdf")
+                    {
+                        continue;
+                    }
+
+                    if entry.file_type().is_file() {
+                        if let Err(err) = self.process_file(&entry.path(), &highlighter_config) {
                             println!("ERROR: {}", err)
                         }
                     }

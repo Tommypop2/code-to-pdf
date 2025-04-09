@@ -20,6 +20,7 @@ argh = "0.1.13"
 font-kit = { version = "0.14.2", optional = true }
 fontdue = "0.9.3"
 ignore = "0.4.23"
+jwalk = "0.8.1"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
 # printpdf = { path = "../printpdf", default-features = false }
 printpdf = { version = "0.8.2", default-features = false, features = [

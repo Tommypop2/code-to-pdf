@@ -3,19 +3,21 @@
 use std::collections::HashMap;
 
 use fontdue::{Font, FontSettings};
-use printpdf::{Mm, Pt};
+use printpdf::Pt;
 
 /// Uses the [`fontdue`] text rasterizer to split text into lines less than the `max_width`
-pub fn split_into_lines_fontdue(
+pub fn split_into_lines_fontdue<F: Fn(usize) -> Pt>(
     txt: &str,
     font: &Font,
     font_size: f32,
-    max_width: f32,
+    max_width: F,
     cache: &mut std::collections::HashMap<char, f32>,
-) -> Vec<String> {
-    let mut lines: Vec<String> = vec![];
+) -> Vec<(String, f32)> {
+    let mut lines: Vec<(String, f32)> = vec![];
     let mut line_buf = String::new();
     let mut current_line_width = 0.0;
+    // Stores the max line width for the current line (may be different depending on what line we're on)
+    let mut max_line_width = max_width(0).0;
     for ch in txt.chars() {
         let width = match cache.get(&ch) {
             Some(w) => *w,
@@ -26,17 +28,19 @@ pub fn split_into_lines_fontdue(
             }
         };
         // Move onto new line if width exceeds maximum, or if we're close to the maximum and find a space
-        if (current_line_width + width >= max_width)
-            || ((max_width - (current_line_width + width) < 30.0) && ch.is_whitespace())
+        if (current_line_width + width >= max_line_width)
+            || ((max_line_width - (current_line_width + width) < 30.0) && ch.is_whitespace())
         {
-            lines.push(line_buf.trim().to_string());
+            lines.push((line_buf.trim().to_string(), current_line_width));
+            // Retrieve new line width for the next line
+            max_line_width = max_width(lines.len()).0;
             line_buf.clear();
             current_line_width = 0.0;
         }
         line_buf.push(ch);
         current_line_width += width;
     }
-    lines.push(line_buf.trim().to_string());
+    lines.push((line_buf.trim().to_string(), current_line_width));
     lines
 }
 
@@ -56,13 +60,18 @@ impl TextWrapper {
             font_size,
         }
     }
+    // max_width.into_pt().0
     /// Splits a given &[`str`] into a [`Vec<String>`] of lines not exceeding the `max_width` set
-    pub fn split_into_lines(&mut self, txt: &str, max_width: Mm) -> Vec<String> {
+    pub fn split_into_lines<T: Fn(usize) -> Pt>(
+        &mut self,
+        txt: &str,
+        max_width: T,
+    ) -> Vec<(String, f32)> {
         split_into_lines_fontdue(
             txt,
             &self.font,
             self.font_size,
-            max_width.into_pt().0,
+            max_width,
             &mut self.rasterize_cache,
         )
     }
@@ -101,11 +110,19 @@ mod tests {
             TEXT,
             &Font::from_bytes(FONT_BYTES, FontSettings::default()).unwrap(),
             20.0,
-            100.0,
+            |_| Pt(100.0),
             &mut HashMap::new(),
         );
         assert_eq!(result.len(), 7);
         // Check that joining back together creates the original string (spaces are trimmed so doesn't matter if these aren't retained)
-        assert_eq!(result.join("").replace(' ', ""), TEXT.replace(' ', ""));
+        assert_eq!(
+            result
+                .iter()
+                .map(|x| x.0.clone())
+                .collect::<Vec<String>>()
+                .join("")
+                .replace(' ', ""),
+            TEXT.replace(' ', "")
+        );
     }
 }

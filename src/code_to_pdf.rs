@@ -142,9 +142,11 @@ impl CodeToPdf {
                     )]
                 };
             for (style, text) in regions {
-                line_width += self.text_wrapper.get_width(text).0;
+                dbg!(text);
+                // line_width += self.text_wrapper.get_width(text).0;
+                let text_width = self.text_wrapper.get_width(text).0;
                 // If current line is getting too long, add a line break
-                if line_width > self.page_dimensions.max_text_width().into_pt().0 {
+                if line_width + text_width > self.page_dimensions.max_text_width().into_pt().0 {
                     self.increment_line_count(&mut line_count, path);
                     self.current_page_contents.push(Op::AddLineBreak);
                     line_width = 0.0;
@@ -159,9 +161,9 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-                let lines = self
-                    .text_wrapper
-                    .split_into_lines(text, self.page_dimensions.max_text_width());
+                let lines = self.text_wrapper.split_into_lines(text, |i| match i {
+                    _ => self.page_dimensions.max_text_width().into_pt(),
+                });
                 // If only a single line, then no new lines are going to be made (as we're processing a region here)
                 match lines.len() {
                     1 => {
@@ -169,15 +171,18 @@ impl CodeToPdf {
                             items: vec![TextItem::Text(text.to_owned())],
                             font: self.font_id.clone(),
                         });
+                        line_width += text_width;
                     }
-                    // If the region is too long to fit onto a new line, split and write to multiple different lines
+                    // If the region is too long to fit onto the current line, write to multiple different lines
                     _ => {
                         let mut first = true;
-                        for l in lines {
+                        for (l, width) in lines {
                             if !first {
                                 self.current_page_contents.push(Op::AddLineBreak);
+                                line_width = 0.0;
                             }
                             first = false;
+                            line_width += width;
                             self.current_page_contents.push(Op::WriteText {
                                 items: vec![TextItem::Text(l)],
                                 font: self.font_id.clone(),

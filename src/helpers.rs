@@ -66,15 +66,14 @@ pub fn init_page(
             },
         },
     ]);
-    for line in wrapper.split_into_lines(
-        &path.display().to_string(),
-        page_dimensions.max_text_width()
+    for (line, _) in wrapper.split_into_lines(&path.display().to_string(), |_| {
+        (page_dimensions.max_text_width()
             - if additional_text.is_some() {
                 Mm::from(Pt(additional_text_width)) + Mm(5.0)
             } else {
                 Mm(0.0)
-            },
-    ) {
+            }).into_pt()
+    }) {
         new_contents.push(Op::WriteText {
             items: vec![TextItem::Text(line)],
             font: font_id.clone(),

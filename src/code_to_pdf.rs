@@ -143,6 +143,7 @@ impl CodeToPdf {
                 };
             for (style, text) in regions {
                 let text_width = self.text_wrapper.get_width(text).0;
+
                 let line_width_remaining =
                     self.page_dimensions.max_text_width().into_pt().0 - line_width;
 
@@ -156,7 +157,7 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
-								// Split into lines, with the length of the first line being the length remaining on the current line
+                // Split into lines, with the length of the first line being the length remaining on the current line
                 let lines = self.text_wrapper.split_into_lines(text, |i| match i {
                     0 => Pt(line_width_remaining),
                     _ => self.page_dimensions.max_text_width().into_pt(),
@@ -189,8 +190,6 @@ impl CodeToPdf {
                     }
                 }
             }
-
-            // Split text into chunks the maximum width of the view
 
             if !self.increment_line_count(&mut line_count, path) {
                 self.current_page_contents.push(Op::AddLineBreak);

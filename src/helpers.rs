@@ -72,7 +72,8 @@ pub fn init_page(
                 Mm::from(Pt(additional_text_width)) + Mm(5.0)
             } else {
                 Mm(0.0)
-            }).into_pt()
+            })
+        .into_pt()
     }) {
         new_contents.push(Op::WriteText {
             items: vec![TextItem::Text(line)],

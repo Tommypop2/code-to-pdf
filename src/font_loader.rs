@@ -1,11 +1,7 @@
 //! Functions for loading fonts from the system fonts, a path, or using the bundled `Helvetica` font
 
 #[cfg(feature = "font-loading")]
-use font_kit::family_name::FamilyName;
-#[cfg(feature = "font-loading")]
-use font_kit::properties::Properties;
-#[cfg(feature = "font-loading")]
-use font_kit::source::SystemSource;
+use font_kit::{family_name::FamilyName, properties::Properties, source::SystemSource};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;

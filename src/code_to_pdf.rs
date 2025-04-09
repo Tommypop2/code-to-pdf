@@ -4,8 +4,8 @@ use std::{ffi::OsStr, fs, io::BufRead, path::Path};
 
 use ignore::Walk;
 use printpdf::{
-    FontId, Op, PdfDocument, PdfPage, Px, RawImage, TextItem, XObjectRotation, XObjectTransform,
-    color,
+    FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem, XObjectRotation,
+    XObjectTransform, color,
 };
 use syntect::{
     easy::HighlightFile,
@@ -142,15 +142,10 @@ impl CodeToPdf {
                     )]
                 };
             for (style, text) in regions {
-                dbg!(text);
-                // line_width += self.text_wrapper.get_width(text).0;
                 let text_width = self.text_wrapper.get_width(text).0;
-                // If current line is getting too long, add a line break
-                if line_width + text_width > self.page_dimensions.max_text_width().into_pt().0 {
-                    self.increment_line_count(&mut line_count, path);
-                    self.current_page_contents.push(Op::AddLineBreak);
-                    line_width = 0.0;
-                }
+                let line_width_remaining =
+                    self.page_dimensions.max_text_width().into_pt().0 - line_width;
+
                 let text_style = style.foreground;
                 // Set PDF text colour
                 self.current_page_contents.push(Op::SetFillColor {
@@ -161,7 +156,9 @@ impl CodeToPdf {
                         icc_profile: None,
                     }),
                 });
+								// Split into lines, with the length of the first line being the length remaining on the current line
                 let lines = self.text_wrapper.split_into_lines(text, |i| match i {
+                    0 => Pt(line_width_remaining),
                     _ => self.page_dimensions.max_text_width().into_pt(),
                 });
                 // If only a single line, then no new lines are going to be made (as we're processing a region here)
@@ -278,7 +275,6 @@ impl CodeToPdf {
     }
     /// Consumes entire walker
     pub fn process_files(&mut self, walker: Walk, highlighter_config: HighlighterConfig) {
-        dbg!(self.max_line_count());
         for result in walker {
             match result {
                 Ok(entry) => {

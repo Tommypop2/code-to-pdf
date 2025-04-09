@@ -162,8 +162,8 @@ impl CodeToPdf {
                     0 => Pt(line_width_remaining),
                     _ => self.page_dimensions.max_text_width().into_pt(),
                 });
-                // If only a single line, then no new lines are going to be made (as we're processing a region here)
                 match lines.len() {
+                    // If only a single line, then no new lines are going to be made (as we're processing a region here)
                     1 => {
                         self.current_page_contents.push(Op::WriteText {
                             items: vec![TextItem::Text(text.to_owned())],

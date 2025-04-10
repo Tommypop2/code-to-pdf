@@ -157,7 +157,7 @@ fn main() {
 
     walker.enumerate().par_bridge().for_each(|(i, result)| {
         // let mut doc = PdfDocument::new(&args.name);
-        let c2pdf_and_exclusions = tl.get_or(|| {
+        let c2pdf = tl.get_or(|| {
             Arc::new(Mutex::new(CodeToPdf::new(
                 doc_subset.clone(),
                 font_id.clone(),
@@ -169,8 +169,8 @@ fn main() {
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {
-                    let mut c2pdf = c2pdf_and_exclusions.lock().unwrap();
-                    c2pdf.process_file(
+                    let mut c2pdf = c2pdf.lock().unwrap();
+                    if let Err(err) = c2pdf.process_file(
                         entry.path(),
                         &HighlighterConfig::new(
                             ss.clone(),
@@ -178,10 +178,14 @@ fn main() {
                                 .clone(),
                         ),
                         i,
-                    );
+                    ) {
+                        println!("ERROR: {}", err);
+                    }
                 }
             }
-            Err(_) => {}
+            Err(err) => {
+							println!("ERROR: {}", err);
+						}
         }
 
         // dbg!(current_thread_index());

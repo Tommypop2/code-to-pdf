@@ -151,13 +151,14 @@ fn main() {
     //     //     ))
     //     // });
     // });
-    let tl = ThreadLocal::<Arc<Mutex<CodeToPdf>>>::new();
+    let local_c2pdf = ThreadLocal::<Arc<Mutex<CodeToPdf>>>::new();
+    let local_highlighter_config = ThreadLocal::<Arc<Mutex<HighlighterConfig>>>::new();
 
     let doc_subset = Arc::new(Mutex::new(doc_subset));
 
     walker.enumerate().par_bridge().for_each(|(i, result)| {
         // let mut doc = PdfDocument::new(&args.name);
-        let c2pdf = tl.get_or(|| {
+        let c2pdf_mutex = local_c2pdf.get_or(|| {
             Arc::new(Mutex::new(CodeToPdf::new(
                 doc_subset.clone(),
                 font_id.clone(),
@@ -166,26 +167,29 @@ fn main() {
                 args.page_text.clone(),
             )))
         });
+        let highlight_config_mutex = local_highlighter_config.get_or(|| {
+            Arc::new(Mutex::new(HighlighterConfig::new(
+                ss.clone(),
+                ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
+                    .clone(),
+            )))
+        });
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {
-                    let mut c2pdf = c2pdf.lock().unwrap();
-                    if let Err(err) = c2pdf.process_file(
-                        entry.path(),
-                        &HighlighterConfig::new(
-                            ss.clone(),
-                            ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
-                                .clone(),
-                        ),
-                        i,
-                    ) {
+                    if let Err(err) =
+                        c2pdf_mutex
+                            .lock()
+                            .unwrap()
+                            .process_file(entry.path(), &highlight_config_mutex.lock().unwrap(), i)
+                    {
                         println!("ERROR: {}", err);
                     }
                 }
             }
             Err(err) => {
-							println!("ERROR: {}", err);
-						}
+                println!("ERROR: {}", err);
+            }
         }
 
         // dbg!(current_thread_index());
@@ -198,7 +202,7 @@ fn main() {
         // );
     });
     let mut processed_file_count = 0;
-    for local in tl.iter() {
+    for local in local_c2pdf.iter() {
         processed_file_count += local.lock().unwrap().processed_file_count();
     }
     // let processed_file_count = .processed_file_count();

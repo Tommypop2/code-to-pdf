@@ -1,11 +1,20 @@
 //! Contains [`HighlighterConfig`] and [`CodeToPdf`] structs
 
-use std::{ffi::OsStr, fs, io::BufRead, path::Path};
+use std::{
+    cmp::Ordering,
+    collections::BTreeMap,
+    ffi::OsStr,
+    fs,
+    io::BufRead,
+    mem,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use ignore::Walk;
 use printpdf::{
-    FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem, XObjectRotation,
-    XObjectTransform, color,
+    FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem,
+    XObject, XObjectId, XObjectRotation, XObjectTransform, color,
 };
 use syntect::{
     easy::HighlightFile,
@@ -14,7 +23,7 @@ use syntect::{
 };
 
 use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
-
+use rayon::prelude::*;
 /// Configuration struct for the highlighter ([`syntect`])
 ///
 /// Contains the desired theme, syntax set, and the maximum line length to highlight
@@ -33,13 +42,49 @@ impl HighlighterConfig {
         }
     }
 }
-
+/// Subset of `PdfDocument`. Created as some types within `PdfDocument` weren't sync so it couldn't be used with `rayon`
+#[derive(Default)]
+pub struct DocumentSubset {
+    x_object_map: BTreeMap<XObjectId, XObject>,
+    // font_map: Arc<Mutex<BTreeMap<FontId, ParsedFont>>>,
+    pages: Vec<(PdfPage, usize)>,
+}
+impl DocumentSubset {
+    pub fn add_image(&mut self, image: &RawImage) -> XObjectId {
+        let id = XObjectId::new();
+        self.x_object_map
+            .insert(id.clone(), XObject::Image(image.clone()));
+        id
+    }
+    pub fn to_document(&mut self, doc: &mut PdfDocument) {
+        let x_obj_map = mem::take(&mut self.x_object_map);
+        doc.resources.xobjects.map = x_obj_map;
+        let mut pages = mem::take(&mut self.pages);
+        pages.sort_by(|a, b| {
+            let ia = a.1;
+            let ib = b.1;
+            if ia > ib {
+                Ordering::Greater
+            } else if ia < ib {
+                Ordering::Less
+            } else {
+                Ordering::Equal
+            }
+        });
+        doc.pages = pages.into_iter().map(|f| f.0).collect();
+    }
+    // pub fn add_font(&mut self, font: &ParsedFont) -> FontId {
+    //     let id = FontId::new();
+    //     self.font_map.lock().unwrap().insert(id.clone(), font.clone());
+    //     id
+    // }
+}
 /// Main struct for generating PDFs.
 /// It handles almost the entire process of reading and highlighting code,
 /// as well as actually writing it to the PDF
 pub struct CodeToPdf {
     current_page_contents: Vec<Op>,
-    doc: PdfDocument,
+    doc: Arc<Mutex<DocumentSubset>>,
     font_id: FontId,
     page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
@@ -50,7 +95,7 @@ pub struct CodeToPdf {
 impl CodeToPdf {
     /// Initialises a new [`CodeToPdf`]
     pub fn new(
-        doc: PdfDocument,
+        doc: Arc<Mutex<DocumentSubset>>,
         font_id: FontId,
         page_dimensions: Dimensions,
         text_wrapper: TextWrapper,
@@ -67,14 +112,18 @@ impl CodeToPdf {
         }
     }
     /// Saves the current page contents to the document, and clears [`CodeToPdf::current_page_contents`]
-    fn save_page(&mut self) {
+    fn save_page(&mut self, index: usize) {
         let contents = std::mem::take(&mut self.current_page_contents);
         let page = PdfPage::new(
             self.page_dimensions.width,
             self.page_dimensions.height,
             contents,
         );
-        self.doc.pages.push(page);
+        _ = self.doc.lock().map(|mut doc| {
+            doc.pages.push((page, index));
+            
+        });
+        // self.doc.pages.push(page);
     }
 
     /// Initialises [`CodeToPdf::current_page_contents`] with basic contents
@@ -99,10 +148,10 @@ impl CodeToPdf {
     }
     /// Increment given line_count. Begin a new page if it's too high
     /// Returns `true` if a new page is created
-    fn increment_line_count(&mut self, line_count: &mut u32, path: &Path) -> bool {
+    fn increment_line_count(&mut self, line_count: &mut u32, path: &Path, index: usize) -> bool {
         *line_count += 1;
         if *line_count > self.max_line_count() {
-            self.save_page();
+            self.save_page(index);
             self.init_page(path);
             *line_count = 0;
             true
@@ -116,6 +165,7 @@ impl CodeToPdf {
         highlighter: &mut HighlightFile,
         path: &Path,
         highlighter_config: &HighlighterConfig,
+        index: usize,
     ) {
         let mut line = String::new();
         let mut line_count = 0;
@@ -185,27 +235,27 @@ impl CodeToPdf {
                                 items: vec![TextItem::Text(l)],
                                 font: self.font_id.clone(),
                             });
-                            self.increment_line_count(&mut line_count, path);
+                            self.increment_line_count(&mut line_count, path, index);
                         }
                     }
                 }
             }
 
-            if !self.increment_line_count(&mut line_count, path) {
+            if !self.increment_line_count(&mut line_count, path, index) {
                 self.current_page_contents.push(Op::AddLineBreak);
             }
             line.clear();
         }
         // Clear page if no text has been added to it
         if has_added_text {
-            self.save_page();
+            self.save_page(index);
         } else {
             self.current_page_contents.clear()
         }
     }
 
     /// Generates a page containing the image at the path given
-    fn generate_image_page(&mut self, path: &Path) {
+    fn generate_image_page(&mut self, path: &Path, index: usize) {
         let bytes = if let Ok(b) = fs::read(path) {
             b
         } else {
@@ -217,7 +267,15 @@ impl CodeToPdf {
             return;
         };
         self.init_page(path);
-        let image_id = self.doc.add_image(&image);
+        // let image_id = self.doc.add_image(&image);
+        let image_id = self
+            .doc
+            .lock()
+            .map(|mut doc| {
+                
+                doc.add_image(&image)
+            })
+            .unwrap();
         let pg_x_dpi = self.page_dimensions.width.into_pt().into_px(300.0).0;
         let pg_y_dpi = self.page_dimensions.height.into_pt().into_px(300.0).0;
 
@@ -244,19 +302,20 @@ impl CodeToPdf {
                 ..Default::default()
             },
         });
-        self.save_page();
+        self.save_page(index);
     }
     /// Generates pages for a file
     pub fn process_file(
         &mut self,
         file: &Path,
         highlighter_config: &HighlighterConfig,
+        index: usize,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Generating pages for {}", file.display());
+        println!("Generating pages for {}, index {index}", file.display());
         self.processed_file_count += 1;
         match file.extension().and_then(OsStr::to_str) {
             Some("jpg" | "jpeg" | "png" | "ico" | "bmp" | "webp") => {
-                self.generate_image_page(file);
+                self.generate_image_page(file, index);
                 Ok(())
             }
             _ => {
@@ -266,7 +325,7 @@ impl CodeToPdf {
                     &highlighter_config.theme,
                 )?;
 
-                self.generate_highlighted_pages(&mut highlighter, file, highlighter_config);
+                self.generate_highlighted_pages(&mut highlighter, file, highlighter_config, index);
 
                 Ok(())
             }
@@ -278,7 +337,7 @@ impl CodeToPdf {
             match result {
                 Ok(entry) => {
                     if entry.file_type().is_some_and(|f| f.is_file()) {
-                        if let Err(err) = self.process_file(entry.path(), &highlighter_config) {
+                        if let Err(err) = self.process_file(entry.path(), &highlighter_config, 0) {
                             println!("ERROR: {}", err)
                         }
                     }
@@ -289,9 +348,9 @@ impl CodeToPdf {
     }
 
     /// Consumes the instance and returns the underlying document
-    pub fn document(self) -> PdfDocument {
-        self.doc
-    }
+    // pub fn document(self) -> PdfDocument {
+    //     self.doc
+    // }
 
     /// Returns number of files processed by [`CodeToPdf::process_files`]
     pub fn processed_file_count(&self) -> usize {

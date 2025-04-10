@@ -5,6 +5,7 @@ use printpdf::Mm;
 
 /// Stores the dimensions of the page
 #[allow(missing_docs)]
+#[derive(Debug, Clone)]
 pub struct Dimensions {
     pub width: Mm,
     pub height: Mm,

@@ -1,14 +1,16 @@
 use argh::FromArgs;
-use c2pdf::code_to_pdf::{CodeToPdf, HighlighterConfig};
+use c2pdf::code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};
 use c2pdf::dimensions::Dimensions;
 use c2pdf::font_loader::load_font;
 use c2pdf::text_manipulation::TextWrapper;
 use core::f32;
 use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
+use rayon::prelude::*;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use std::{cmp::Ordering, fs::File};
-
+use thread_local::ThreadLocal;
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
 fn vec_from_string(s: &str) -> Result<StringVec, String> {
@@ -86,12 +88,13 @@ fn main() {
     let font_bytes = &*font_bytes;
     let font = ParsedFont::from_bytes(font_bytes, 0, &mut vec![]).unwrap();
     let font_id = doc.add_font(&font);
+    let doc_subset = DocumentSubset::default();
     let ss = two_face::syntax::extra_newlines();
     let ts = two_face::theme::extra();
     let walker = WalkBuilder::new(path.clone())
         .overrides({
             let mut builder = OverrideBuilder::new(path);
-            for exclusion in args.exclude {
+            for exclusion in args.exclude.clone() {
                 builder.add(&("!".to_string() + &exclusion)).unwrap();
             }
             builder.build().unwrap()
@@ -111,22 +114,92 @@ fn main() {
             .reverse()
         })
         .build();
-    let mut c2pdf = CodeToPdf::new(
-        doc,
-        font_id,
-        page_dimensions,
-        TextWrapper::new(font_bytes, args.font_size),
-        args.page_text,
-    );
-    let highlighter_config = HighlighterConfig::new(
-        ss,
-        ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
-            .clone(),
-    );
+    // let doc = Arc::new(Mutex::new(doc));
+    // let mut c2pdf = CodeToPdf::new(
+    //     doc.clone(),
+    //     font_id.clone(),
+    //     page_dimensions,
+    //     TextWrapper::new(font_bytes, args.font_size),
+    //     args.page_text,
+    // );
+    // let highlighter_config = HighlighterConfig::new(
+    //     ss.clone(),
+    //     ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
+    //         .clone(),
+    // );
     let start = Instant::now();
-    c2pdf.process_files(walker, highlighter_config);
-    let processed_file_count = c2pdf.processed_file_count();
-    let doc = c2pdf.document();
+    // c2pdf.process_files(walker, highlighter_config);
+    // for result in walker {
+    // 	dbg!(result.unwrap().path());
+    // }
+    // let tl = ThreadLocal::new();
+    // walker.par_bridge().for_each(|result| {
+    //     let inst = Arc::new(Mutex::new(CodeToPdf::new(
+    //         doc.clone(),
+    //         font_id.clone(),
+    //         page_dimensions,
+    //         TextWrapper::new(font_bytes, args.font_size),
+    //         args.page_text,
+    //     )));
+    //     // let x = tl.get_or(|| {
+    //     //     RefCell::new(CodeToPdf::new(
+    //     //         doc.clone(),
+    //     //         font_id.clone(),
+    //     //         page_dimensions,
+    //     //         TextWrapper::new(font_bytes, args.font_size),
+    //     //         args.page_text,
+    //     //     ))
+    //     // });
+    // });
+    let tl = ThreadLocal::<Arc<Mutex<CodeToPdf>>>::new();
+
+    let doc_subset = Arc::new(Mutex::new(doc_subset));
+
+    walker.enumerate().par_bridge().for_each(|(i, result)| {
+        // let mut doc = PdfDocument::new(&args.name);
+        let c2pdf_and_exclusions = tl.get_or(|| {
+            Arc::new(Mutex::new(CodeToPdf::new(
+                doc_subset.clone(),
+                font_id.clone(),
+                page_dimensions.clone(),
+                TextWrapper::new(font_bytes, args.font_size),
+                args.page_text.clone(),
+            )))
+        });
+        match result {
+            Ok(entry) => {
+                if entry.file_type().is_some_and(|f| f.is_file()) {
+                    let mut c2pdf = c2pdf_and_exclusions.lock().unwrap();
+                    c2pdf.process_file(
+                        entry.path(),
+                        &HighlighterConfig::new(
+                            ss.clone(),
+                            ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
+                                .clone(),
+                        ),
+                        i,
+                    );
+                }
+            }
+            Err(_) => {}
+        }
+
+        // dbg!(current_thread_index());
+        // let mut c2pdf = CodeToPdf::new(
+        //     doc.clone(),
+        //     font_id.clone(),
+        //     page_dimensions.clone(),
+        //     TextWrapper::new(font_bytes, args.font_size),
+        //     args.page_text.clone(),
+        // );
+    });
+    let mut processed_file_count = 0;
+    for local in tl.iter() {
+        processed_file_count += local.lock().unwrap().processed_file_count();
+    }
+    // let processed_file_count = .processed_file_count();
+    // let doc = doc.lock().unwrap();
+    doc_subset.lock().unwrap().to_document(&mut doc);
     let num_pages = doc.pages.len();
     // let before_write = Instant::now();
     let f = File::create(args.out).unwrap();

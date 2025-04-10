@@ -114,43 +114,7 @@ fn main() {
             .reverse()
         })
         .build();
-    // let doc = Arc::new(Mutex::new(doc));
-    // let mut c2pdf = CodeToPdf::new(
-    //     doc.clone(),
-    //     font_id.clone(),
-    //     page_dimensions,
-    //     TextWrapper::new(font_bytes, args.font_size),
-    //     args.page_text,
-    // );
-    // let highlighter_config = HighlighterConfig::new(
-    //     ss.clone(),
-    //     ts.get(two_face::theme::EmbeddedThemeName::InspiredGithub)
-    //         .clone(),
-    // );
     let start = Instant::now();
-    // c2pdf.process_files(walker, highlighter_config);
-    // for result in walker {
-    // 	dbg!(result.unwrap().path());
-    // }
-    // let tl = ThreadLocal::new();
-    // walker.par_bridge().for_each(|result| {
-    //     let inst = Arc::new(Mutex::new(CodeToPdf::new(
-    //         doc.clone(),
-    //         font_id.clone(),
-    //         page_dimensions,
-    //         TextWrapper::new(font_bytes, args.font_size),
-    //         args.page_text,
-    //     )));
-    //     // let x = tl.get_or(|| {
-    //     //     RefCell::new(CodeToPdf::new(
-    //     //         doc.clone(),
-    //     //         font_id.clone(),
-    //     //         page_dimensions,
-    //     //         TextWrapper::new(font_bytes, args.font_size),
-    //     //         args.page_text,
-    //     //     ))
-    //     // });
-    // });
     let local_c2pdf = ThreadLocal::<Arc<Mutex<CodeToPdf>>>::new();
     let local_highlighter_config = ThreadLocal::<Arc<Mutex<HighlighterConfig>>>::new();
 
@@ -177,12 +141,11 @@ fn main() {
         match result {
             Ok(entry) => {
                 if entry.file_type().is_some_and(|f| f.is_file()) {
-                    if let Err(err) =
-                        c2pdf_mutex
-                            .lock()
-                            .unwrap()
-                            .process_file(entry.path(), &highlight_config_mutex.lock().unwrap(), i)
-                    {
+                    if let Err(err) = c2pdf_mutex.lock().unwrap().process_file(
+                        entry.path(),
+                        &highlight_config_mutex.lock().unwrap(),
+                        i,
+                    ) {
                         println!("ERROR: {}", err);
                     }
                 }
@@ -191,22 +154,12 @@ fn main() {
                 println!("ERROR: {}", err);
             }
         }
-
-        // dbg!(current_thread_index());
-        // let mut c2pdf = CodeToPdf::new(
-        //     doc.clone(),
-        //     font_id.clone(),
-        //     page_dimensions.clone(),
-        //     TextWrapper::new(font_bytes, args.font_size),
-        //     args.page_text.clone(),
-        // );
     });
     let mut processed_file_count = 0;
     for local in local_c2pdf.iter() {
         processed_file_count += local.lock().unwrap().processed_file_count();
     }
-    // let processed_file_count = .processed_file_count();
-    // let doc = doc.lock().unwrap();
+	
     doc_subset.lock().unwrap().to_document(&mut doc);
     let num_pages = doc.pages.len();
     // let before_write = Instant::now();

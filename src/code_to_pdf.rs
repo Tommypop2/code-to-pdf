@@ -60,6 +60,8 @@ impl DocumentSubset {
         let x_obj_map = mem::take(&mut self.x_object_map);
         doc.resources.xobjects.map = x_obj_map;
         let mut pages = mem::take(&mut self.pages);
+				// Sort into order from the walker
+				// This brings back determinism :)
         pages.sort_by(|a, b| {
             let ia = a.1;
             let ib = b.1;
@@ -121,7 +123,7 @@ impl CodeToPdf {
         );
         _ = self.doc.lock().map(|mut doc| {
             doc.pages.push((page, index));
-            
+            ()
         });
         // self.doc.pages.push(page);
     }
@@ -272,8 +274,8 @@ impl CodeToPdf {
             .doc
             .lock()
             .map(|mut doc| {
-                
-                doc.add_image(&image)
+                let id = doc.add_image(&image);
+                id
             })
             .unwrap();
         let pg_x_dpi = self.page_dimensions.width.into_pt().into_px(300.0).0;

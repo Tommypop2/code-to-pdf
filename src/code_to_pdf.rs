@@ -13,8 +13,8 @@ use std::{
 
 use ignore::Walk;
 use printpdf::{
-    FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem,
-    XObject, XObjectId, XObjectRotation, XObjectTransform, color,
+    FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem, XObject, XObjectId,
+    XObjectRotation, XObjectTransform, color,
 };
 use syntect::{
     easy::HighlightFile,
@@ -23,7 +23,7 @@ use syntect::{
 };
 
 use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
-use rayon::prelude::*;
+
 /// Configuration struct for the highlighter ([`syntect`])
 ///
 /// Contains the desired theme, syntax set, and the maximum line length to highlight
@@ -50,18 +50,20 @@ pub struct DocumentSubset {
     pages: Vec<(PdfPage, usize)>,
 }
 impl DocumentSubset {
+		/// Add an image
     pub fn add_image(&mut self, image: &RawImage) -> XObjectId {
         let id = XObjectId::new();
         self.x_object_map
             .insert(id.clone(), XObject::Image(image.clone()));
         id
     }
+    /// Append everything from the `DocumentSubset` into the actual PdfDocument
     pub fn to_document(&mut self, doc: &mut PdfDocument) {
         let x_obj_map = mem::take(&mut self.x_object_map);
         doc.resources.xobjects.map = x_obj_map;
         let mut pages = mem::take(&mut self.pages);
-				// Sort into order from the walker
-				// This brings back determinism :)
+        // Sort into order from the walker
+        // This brings back determinism :)
         pages.sort_by(|a, b| {
             let ia = a.1;
             let ib = b.1;

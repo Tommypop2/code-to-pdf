@@ -159,7 +159,7 @@ fn main() {
     for local in local_c2pdf.iter() {
         processed_file_count += local.lock().unwrap().processed_file_count();
     }
-	
+
     doc_subset.lock().unwrap().to_document(&mut doc);
     let num_pages = doc.pages.len();
     // let before_write = Instant::now();

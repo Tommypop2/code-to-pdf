@@ -13,7 +13,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "c2pdf"
 path = "src/bin.rs"
-required-features = ["font-loading"]
+# required-features = ["font-loading"]
 
 [dependencies]
 argh = "0.1.13"

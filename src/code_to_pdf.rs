@@ -133,7 +133,7 @@ impl CodeToPdf {
         );
         _ = self.doc.lock().map(|mut doc| {
             doc.pages.push((page, index));
-            ()
+            
         });
         // self.doc.pages.push(page);
     }
@@ -216,7 +216,7 @@ impl CodeToPdf {
                     self.current_page_contents.push(Op::SetFillColor {
                         col: color::Color::Rgb(to_rgb(text_colour)),
                     });
-										prev_colour = text_colour;
+                    prev_colour = text_colour;
                 }
                 // Split into lines, with the length of the first line being the length remaining on the current line
                 let lines = self.text_wrapper.split_into_lines(text, |i| match i {
@@ -283,8 +283,7 @@ impl CodeToPdf {
             .doc
             .lock()
             .map(|mut doc| {
-                let id = doc.add_image(&image);
-                id
+                doc.add_image(&image)
             })
             .unwrap();
         let pg_x_dpi = self.page_dimensions.width.into_pt().into_px(300.0).0;
@@ -357,11 +356,6 @@ impl CodeToPdf {
             }
         }
     }
-
-    /// Consumes the instance and returns the underlying document
-    // pub fn document(self) -> PdfDocument {
-    //     self.doc
-    // }
 
     /// Returns number of files processed by [`CodeToPdf::process_files`]
     pub fn processed_file_count(&self) -> usize {

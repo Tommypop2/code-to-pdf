@@ -16,7 +16,7 @@ pub fn init_page(
     additional_text: Option<&str>,
     wrapper: &mut TextWrapper,
 ) {
-    let mut new_contents = vec![
+    contents.extend_from_slice(&[
         Op::SetLineHeight {
             lh: Pt(font_size * 1.2),
         },
@@ -24,7 +24,7 @@ pub fn init_page(
             size: Pt(font_size),
             font: font_id.clone(),
         },
-    ];
+    ]);
     let mut additional_text_width = 0.0;
     // Write additional text
     if let Some(text) = additional_text {
@@ -34,7 +34,7 @@ pub fn init_page(
                 additional_text_width = line_width
             }
         }
-        new_contents.extend_from_slice(&[
+        contents.extend_from_slice(&[
             Op::SetTextMatrix {
                 matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
             },
@@ -47,14 +47,14 @@ pub fn init_page(
             },
         ]);
         for line in text.lines() {
-            new_contents.push(Op::WriteText {
+            contents.push(Op::WriteText {
                 items: vec![TextItem::Text(line.to_string())],
                 font: font_id.clone(),
             });
-            new_contents.push(Op::AddLineBreak);
+            contents.push(Op::AddLineBreak);
         }
     }
-    new_contents.extend_from_slice(&[
+    contents.extend_from_slice(&[
         Op::SetTextMatrix {
             matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
         },
@@ -75,15 +75,15 @@ pub fn init_page(
             })
         .into_pt()
     }) {
-        new_contents.push(Op::WriteText {
+        contents.push(Op::WriteText {
             items: vec![TextItem::Text(line)],
             font: font_id.clone(),
         });
-        new_contents.push(Op::AddLineBreak);
+        contents.push(Op::AddLineBreak);
     }
 
     // Set cursor to main body
-    new_contents.extend_from_slice(&[
+    contents.extend_from_slice(&[
         // This allows me to reset the text cursor for some reason
         Op::SetTextMatrix {
             matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
@@ -98,5 +98,4 @@ pub fn init_page(
             mode: TextRenderingMode::Fill,
         },
     ]);
-    contents.extend(new_contents);
 }

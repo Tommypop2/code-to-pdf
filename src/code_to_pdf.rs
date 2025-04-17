@@ -188,14 +188,14 @@ impl CodeToPdf {
             has_added_text = true;
             // Store the char count for the current line
             let mut line_width = 0.0;
-            let regions: Vec<(Style, &str)> =
+            let regions: &[(Style, &str)] =
                 if line.len() < highlighter_config.max_line_len_to_highlight {
-                    highlighter
+                    &highlighter
                         .highlight_lines
                         .highlight_line(&line, &highlighter_config.syntax_set)
                         .unwrap()
                 } else {
-                    vec![(
+                    &[(
                         Style {
                             foreground: Color::BLACK,
                             background: Color::WHITE,
@@ -227,7 +227,7 @@ impl CodeToPdf {
                     // If only a single line, then no new lines are going to be made (as we're processing a region here)
                     1 => {
                         self.current_page_contents.push(Op::WriteText {
-                            items: vec![TextItem::Text(text.to_owned())],
+                            items: vec![TextItem::Text(text.to_string())],
                             font: self.font_id.clone(),
                         });
                         line_width += text_width;

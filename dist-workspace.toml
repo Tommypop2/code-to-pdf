@@ -24,7 +24,7 @@ libfontconfig1-dev = "*"
 
 [dist.github-custom-runners]
 global = "ubuntu-latest"
-x86_64-unknown-linux-gnu = "ubunt-latest"
+x86_64-unknown-linux-gnu = "ubuntu-latest"
 # aarch64-unknown-linux-gnu = "ubuntu-latest"
 # aarch64-apple-darwin = "ubuntu-latest"
 # aarch64-pc-windows-msvc = "ubuntu-latest"

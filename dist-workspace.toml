@@ -20,7 +20,7 @@ all-features = true
 
 [[dist.extra-artifacts]]
 artifacts = ["output.pdf"]
-build = ["cargo", "run" ,"--bin", "c2pdf", "--release" ,"."]
+build = ["cargo", "run" ,"--bin", "c2pdf", "--no-default-features", "--release" ,"."]
 
 [dist.dependencies.apt]
 libfontconfig1-dev = "*"

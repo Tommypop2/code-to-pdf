@@ -50,7 +50,7 @@ pub struct DocumentSubset {
     pages: Vec<(PdfPage, usize)>,
 }
 impl DocumentSubset {
-		/// Add an image
+    /// Add an image
     pub fn add_image(&mut self, image: &RawImage) -> XObjectId {
         let id = XObjectId::new();
         self.x_object_map
@@ -82,6 +82,14 @@ impl DocumentSubset {
     //     self.font_map.lock().unwrap().insert(id.clone(), font.clone());
     //     id
     // }
+}
+fn to_rgb(c: Color) -> color::Rgb {
+    color::Rgb {
+        r: (c.r as f32) / 255.0,
+        g: (c.g as f32) / 255.0,
+        b: (c.b as f32) / 255.0,
+        icc_profile: None,
+    }
 }
 /// Main struct for generating PDFs.
 /// It handles almost the entire process of reading and highlighting code,
@@ -175,6 +183,7 @@ impl CodeToPdf {
         let mut line_count = 0;
         self.init_page(path);
         let mut has_added_text = false;
+        let mut prev_colour = Color::BLACK;
         while highlighter.reader.read_line(&mut line).unwrap_or(0) > 0 {
             has_added_text = true;
             // Store the char count for the current line
@@ -201,16 +210,14 @@ impl CodeToPdf {
                 let line_width_remaining =
                     self.page_dimensions.max_text_width().into_pt().0 - line_width;
 
-                let text_style = style.foreground;
-                // Set PDF text colour
-                self.current_page_contents.push(Op::SetFillColor {
-                    col: color::Color::Rgb(color::Rgb {
-                        r: (text_style.r as f32) / 255.0,
-                        g: (text_style.g as f32) / 255.0,
-                        b: (text_style.b as f32) / 255.0,
-                        icc_profile: None,
-                    }),
-                });
+                let text_colour = style.foreground;
+                // Set PDF text colour if the colour of the current region is different to the colour of the previous region
+                if text_colour != prev_colour {
+                    self.current_page_contents.push(Op::SetFillColor {
+                        col: color::Color::Rgb(to_rgb(text_colour)),
+                    });
+										prev_colour = text_colour;
+                }
                 // Split into lines, with the length of the first line being the length remaining on the current line
                 let lines = self.text_wrapper.split_into_lines(text, |i| match i {
                     0 => Pt(line_width_remaining),

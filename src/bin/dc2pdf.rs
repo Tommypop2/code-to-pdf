@@ -2,24 +2,29 @@
 use core::panic;
 use std::{
   fs,
-  iter::{Map, Peekable},
+  iter::Peekable,
   mem,
-  path::{Path, PathBuf},
-  slice::Iter,
+  path::PathBuf,
 };
 
 use printpdf::{self, Op, PdfPage, TextItem};
-use two_face::theme::EmbeddedLazyThemeSet;
-fn parse_sections(page: &PdfPage) -> Vec<Vec<String>> {
+type Section = Vec<String>;
+type Sections = Vec<Section>;
+fn parse_sections(page: &PdfPage) -> Sections {
   let mut sections: Vec<Vec<String>> = vec![];
   // Set of lines for the current section
   let mut current_section: Vec<String> = vec![];
   let mut current_line: String = String::new();
+  let mut split_on_line_break = true;
   // Sort text into sets of lines for each position
   for op in &page.ops {
     match op {
       // `SetTextMatrix` or `SetTextCursor` should create a new section
       Op::SetTextMatrix { matrix: _ } | Op::SetTextCursor { pos: _ } => {
+        // Ensure that the current line is pushed to this section
+        if !current_line.is_empty() {
+          current_section.push(mem::take(&mut current_line));
+        }
         if !current_section.is_empty() {
           let section = mem::take(&mut current_section);
           sections.push(section);
@@ -28,19 +33,23 @@ fn parse_sections(page: &PdfPage) -> Vec<Vec<String>> {
       // Op::SetTextCursor { pos } => {}
       Op::WriteText { items, font: _font } => {
         for item in items {
-          match item {
-            TextItem::Text(text) => {
-              current_line.push_str(text.trim_matches(&['\r', '\n']));
+          if let TextItem::Text(text) = item {
+            let trimmed = text.trim_matches(['\r', '\n']);
+            current_line.push_str(trimmed);
+            if trimmed.len() < text.len() {
+              split_on_line_break = false;
             }
-            _ => {}
           }
         }
       }
       Op::AddLineBreak => {
         // if !current_line.is_empty() {
-        let mut line = mem::take(&mut current_line);
-        line.push('\n');
-        current_section.push(line);
+        if split_on_line_break {
+          let mut line = mem::take(&mut current_line);
+          line.push('\n');
+          current_section.push(line);
+        }
+        split_on_line_break = true;
         // }
       }
       _ => {}
@@ -52,6 +61,7 @@ fn parse_sections(page: &PdfPage) -> Vec<Vec<String>> {
   if !current_section.is_empty() {
     sections.push(current_section);
   }
+  // dbg!(&sections);
   sections
 }
 #[derive(Debug)]
@@ -92,7 +102,11 @@ impl PageData {
         }
       }
       _ => {
-        panic!("Malformed PDF")
+        dbg!(&sections);
+        panic!(
+          "Malformed PDF. Sections length should be 2 or 3, but it was {}",
+          sections.len()
+        )
       }
     }
   }
@@ -103,11 +117,7 @@ struct FileData {
   contents: String,
 }
 fn next_file_data<I: Iterator<Item = PageData>>(pages: &mut Peekable<I>) -> Option<FileData> {
-  let page = if let Some(p) = pages.next() {
-    p
-  } else {
-    return None;
-  };
+  let page = pages.next()?;
   let PageData {
     path,
     mut contents,
@@ -116,7 +126,8 @@ fn next_file_data<I: Iterator<Item = PageData>>(pages: &mut Peekable<I>) -> Opti
   while let Some(peeked) = pages.peek() {
     if peeked.path == path {
       let data = pages.next().unwrap();
-      let c = data.contents;
+      let mut c = data.contents;
+      c.push('\n');
       contents.push_str(&c);
     } else {
       break;
@@ -137,7 +148,8 @@ fn main() {
   while let Some(file_data) = next_file_data(&mut pages_iterator) {
     let base = PathBuf::from("./generated");
     let file_path = base.join(file_data.path);
-    fs::create_dir_all(&file_path.parent().unwrap()).unwrap();
+    fs::create_dir_all(file_path.parent().unwrap()).unwrap();
+
     fs::write(file_path, file_data.contents).unwrap();
   }
 }

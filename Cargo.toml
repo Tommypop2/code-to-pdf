@@ -14,7 +14,9 @@ path = "src/lib/lib.rs"
 name = "c2pdf"
 path = "src/bin/c2pdf.rs"
 # required-features = ["font-loading"]
-
+[[bin]]
+name = "dc2pdf"
+path = "src/bin/dc2pdf.rs"
 [dependencies]
 argh = "0.1.13"
 fast-glob = "0.4.5"

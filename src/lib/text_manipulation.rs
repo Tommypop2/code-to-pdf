@@ -31,7 +31,9 @@ pub fn split_into_lines_fontdue<F: Fn(usize) -> Pt>(
     if (current_line_width + width >= max_line_width)
       || ((max_line_width - (current_line_width + width) < 30.0) && ch.is_whitespace())
     {
-      lines.push((line_buf.trim().to_string(), current_line_width));
+      // Push this character so we know that the new line was due to line splitting
+      line_buf.push('\n');
+      lines.push((line_buf.trim_start().to_string(), current_line_width));
       // Retrieve new line width for the next line
       max_line_width = max_width(lines.len()).0;
       line_buf.clear();

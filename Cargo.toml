@@ -8,11 +8,11 @@ description = "Generates a syntax-highlighted PDF of your source code"
 
 [lib]
 name = "c2pdf"
-path = "src/lib.rs"
+path = "src/lib/lib.rs"
 
 [[bin]]
 name = "c2pdf"
-path = "src/bin.rs"
+path = "src/bin/c2pdf.rs"
 # required-features = ["font-loading"]
 
 [dependencies]

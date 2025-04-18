@@ -225,7 +225,11 @@ impl CodeToPdf {
           // If only a single line, then no new lines are going to be made (as we're processing a region here)
           1 => {
             self.current_page_contents.push(Op::WriteText {
-              items: vec![TextItem::Text(text.to_string())],
+              items: vec![TextItem::Text(
+                text
+                  .trim_end_matches(|x| (x == '\n') | (x == '\r'))
+                  .to_string(),
+              )],
               font: self.font_id.clone(),
             });
             line_width += text_width;

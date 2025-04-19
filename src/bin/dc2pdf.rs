@@ -2,6 +2,7 @@
 use core::panic;
 use std::{fs, iter::Peekable, mem, path::PathBuf};
 
+use argh::FromArgs;
 use printpdf::{self, Op, PdfPage, TextItem};
 type Section = Vec<String>;
 type Sections = Vec<Section>;
@@ -131,10 +132,16 @@ fn next_file_data<I: Iterator<Item = PageData>>(pages: &mut Peekable<I>) -> Opti
 
   Some(FileData { path, contents })
 }
-
+#[derive(FromArgs)]
+/// Decodes a PDF generated via `c2pdf` into the original directory tree
+struct Arguments {
+	#[argh(positional)]
+	pdf_path: PathBuf,
+}
 fn main() {
-  let pdf_bytes = include_bytes!("../../output.pdf");
-  let doc = printpdf::PdfDocument::parse(pdf_bytes, &Default::default(), &mut vec![]).unwrap();
+	let args: Arguments = argh::from_env();
+  let pdf_bytes = fs::read(args.pdf_path).unwrap();
+  let doc = printpdf::PdfDocument::parse(&pdf_bytes, &Default::default(), &mut vec![]).unwrap();
   let mut pages_iterator = doc
     .pages
     .iter()

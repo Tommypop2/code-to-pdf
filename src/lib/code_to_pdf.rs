@@ -160,11 +160,18 @@ impl CodeToPdf {
   }
   /// Increment given line_count. Begin a new page if it's too high
   /// Returns `true` if a new page is created
-  fn increment_line_count(&mut self, line_count: &mut u32, path: &Path, index: usize) -> bool {
+  fn increment_line_count(
+    &mut self,
+    line_count: &mut u32,
+    path: &Path,
+    index: usize,
+    has_added_text: &mut bool,
+  ) -> bool {
     *line_count += 1;
     if *line_count > self.max_line_count() {
       self.save_page(index);
       self.init_page(path);
+      *has_added_text = false;
       *line_count = 0;
       true
     } else {
@@ -248,13 +255,13 @@ impl CodeToPdf {
                 items: vec![TextItem::Text(l)],
                 font: self.font_id.clone(),
               });
-              self.increment_line_count(&mut line_count, path, index);
+              self.increment_line_count(&mut line_count, path, index, &mut has_added_text);
             }
           }
         }
       }
 
-      if !self.increment_line_count(&mut line_count, path, index) {
+      if !self.increment_line_count(&mut line_count, path, index, &mut has_added_text) {
         self.current_page_contents.push(Op::AddLineBreak);
       }
       line.clear();

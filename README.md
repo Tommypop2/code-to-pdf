@@ -94,3 +94,11 @@ This is text that is added to every page
 ```bash
 c2pdf . --page-text "Hello\nWorld" # (use `\n` to indicate a newline)
 ```
+
+## Decoding
+
+Generated PDFs can be decoded - recreating the original source tree which they were generated from
+
+```bash
+dc2pdf ./generated_pdf.pdf --out-dir ./generated # Default out-dir is `./generated`
+```

@@ -135,12 +135,18 @@ fn next_file_data<I: Iterator<Item = PageData>>(pages: &mut Peekable<I>) -> Opti
 #[derive(FromArgs)]
 /// Decodes a PDF generated via `c2pdf` into the original directory tree
 struct Arguments {
-	#[argh(positional)]
-	pdf_path: PathBuf,
+  /// path of the PDF to decode
+  #[argh(positional)]
+  pdf_path: PathBuf,
+
+  /// directory to write decoded data to
+  #[argh(option, default = "PathBuf::from(\"./generated\")")]
+  out_dir: PathBuf,
 }
 fn main() {
-	let args: Arguments = argh::from_env();
-  let pdf_bytes = fs::read(args.pdf_path).unwrap();
+  let args: Arguments = argh::from_env();
+  let Arguments { pdf_path, out_dir } = args;
+  let pdf_bytes = fs::read(pdf_path).unwrap();
   let doc = printpdf::PdfDocument::parse(&pdf_bytes, &Default::default(), &mut vec![]).unwrap();
   let mut pages_iterator = doc
     .pages
@@ -148,7 +154,7 @@ fn main() {
     .map(|p| PageData::parse_from_sections(parse_sections(p)))
     .peekable();
   while let Some(file_data) = next_file_data(&mut pages_iterator) {
-    let base = PathBuf::from("./generated");
+    let base = &out_dir;
     let file_path = base.join(file_data.path);
     fs::create_dir_all(file_path.parent().unwrap()).unwrap();
 

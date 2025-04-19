@@ -62,7 +62,7 @@ impl TextWrapper {
       font_size,
     }
   }
-  // max_width.into_pt().0
+
   /// Splits a given &[`str`] into a [`Vec<String>`] of lines not exceeding the `max_width` set
   pub fn split_into_lines<T: Fn(usize) -> Pt>(
     &mut self,

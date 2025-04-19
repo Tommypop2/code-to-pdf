@@ -17,7 +17,7 @@ fn vec_from_string(s: &str) -> Result<StringVec, String> {
   Ok(s.split(",").map(str::to_string).collect())
 }
 #[derive(FromArgs)]
-/// Command line arguments
+/// Generates a PDF from your source code
 struct Arguments {
   /// the path to walk for files to highlight
   #[argh(positional)]

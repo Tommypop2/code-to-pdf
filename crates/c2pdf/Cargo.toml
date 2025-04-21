@@ -1,0 +1,49 @@
+[package]
+name = "code-to-pdf"
+version = "0.2.0"
+edition = "2024"
+repository = "https://github.com/Tommypop2/code-to-pdf"
+license = "MIT"
+description = "Generates a syntax-highlighted PDF of your source code"
+
+[lib]
+name = "c2pdf"
+path = "src/lib/lib.rs"
+
+[[bin]]
+name = "c2pdf"
+path = "src/bin/c2pdf.rs"
+# required-features = ["font-loading"]
+[[bin]]
+name = "dc2pdf"
+path = "src/bin/dc2pdf.rs"
+[dependencies]
+argh = "0.1.13"
+fast-glob = "0.4.5"
+font-kit = { version = "0.14.2", optional = true }
+fontdue = "0.9.3"
+ignore = "0.4.23"
+# printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
+# printpdf = { path = "../printpdf", default-features = false }
+printpdf = { version="0.8.2", default-features = false, features = [
+	"jpeg",
+	"png",
+	"ico",
+	"bmp",
+	"webp",
+] }
+rayon = "1.10.0"
+syntect = "5.2.0"
+thread_local = "1.1.8"
+two-face = "0.4.3"
+
+[features]
+font-loading = ["dep:font-kit"]
+
+[profile.release]
+lto = "fat"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

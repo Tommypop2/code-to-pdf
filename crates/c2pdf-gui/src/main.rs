@@ -1,4 +1,5 @@
 use std::{
+  path::PathBuf,
   sync::{Arc, Mutex, atomic::AtomicI32, mpsc},
   thread::{self, sleep},
   time::Duration,
@@ -8,7 +9,7 @@ use floem::{
   action::open_file,
   ext_event::create_signal_from_channel,
   prelude::*,
-  reactive::{Scope, SignalRead, create_effect},
+  reactive::{Scope, SignalRead, SignalWrite, create_effect},
 };
 use tokio::runtime::Runtime;
 
@@ -24,6 +25,7 @@ fn app_view() -> impl IntoView {
   let w = floem::file::FileDialogOptions::new().select_directories();
   let cx = Scope::current();
   let (read, write) = cx.create_signal(2);
+  let (dir_path, set_dir_path) = cx.create_signal::<Option<PathBuf>>(None);
   let (tx, rx): (
     crossbeam_channel::Sender<i32>,
     crossbeam_channel::Receiver<i32>,
@@ -36,7 +38,6 @@ fn app_view() -> impl IntoView {
   let t = thread::spawn(move || {
     loop {
       sleep(Duration::from_millis(1000));
-      dbg!("Incrementing");
       let x = thread_num
         .lock()
         .and_then(|mut x| {
@@ -47,17 +48,38 @@ fn app_view() -> impl IntoView {
       thread_tx.send(x).unwrap();
     }
   });
-  create_effect(move |s| {
-    println!("{}", read.get());
+  create_effect(move |_| {
+    println!(
+      "{}",
+      dir_path
+        .get()
+        .and_then(|path| path.to_str().map(|x| x.to_string()))
+        .unwrap_or("".to_string())
+    );
   });
   let increment_num = num.clone();
   let decrement_num = num.clone();
   v_stack((
     button("Open File Picker").action(move || {
-      open_file(w.clone(), |f| {
-        dbg!(f);
-      })
+      open_file(w.clone(), move |f| {
+        if let Some(file) = f {
+          let path = file.path[0].clone();
+          set_dir_path.set(Some(path));
+        };
+      });
     }),
+    label(move || {
+      format!(
+        "Path {}",
+        dir_path
+          .get()
+          .and_then(|path| path.to_str().map(|x| x.to_string()))
+          .unwrap_or("".to_string())
+      )
+    }),
+		button("Process!").action(move || {
+
+		}),
     h_stack((
       button("Increment").action(move || {
         let x = increment_num

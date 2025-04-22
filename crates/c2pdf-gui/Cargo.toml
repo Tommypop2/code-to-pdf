@@ -7,3 +7,4 @@ edition = "2024"
 crossbeam-channel = "0.5.15"
 floem = { version = "0.2.0", features = ["rfd-tokio"] }
 tokio = { version = "1.44.2", features = ["rt-multi-thread"] }
+code-to-pdf = { path = "../c2pdf" }

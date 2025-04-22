@@ -11,3 +11,6 @@ pub mod dimensions;
 pub mod font_loader;
 pub mod helpers;
 pub mod text_manipulation;
+
+// Re-export all types required to set up a valid [`code_to_pdf::CodeToPdf`]
+pub use printpdf::{Mm, PdfDocument, ParsedFont, PdfSaveOptions};

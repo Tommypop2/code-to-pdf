@@ -328,7 +328,6 @@ impl CodeToPdf {
     highlighter_config: &HighlighterConfig,
     index: usize,
   ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Generating pages for {}, index {index}", file.display());
     self.processed_file_count += 1;
     match file.extension().and_then(OsStr::to_str) {
       Some("jpg" | "jpeg" | "png" | "ico" | "bmp" | "webp") => {

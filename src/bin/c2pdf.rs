@@ -2,11 +2,13 @@ use argh::FromArgs;
 use c2pdf::code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};
 use c2pdf::dimensions::Dimensions;
 use c2pdf::font_loader::load_font;
+use c2pdf::logging::Logger;
 use c2pdf::text_manipulation::TextWrapper;
 use core::f32;
 use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
 use rayon::prelude::*;
+use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use std::{cmp::Ordering, fs::File};
@@ -70,7 +72,10 @@ struct Arguments {
   page_text: Option<String>,
 }
 fn main() {
+  // Parse args
   let args: Arguments = argh::from_env();
+  // Set up logger
+  let logger = Logger::new(channel());
   let path = args.walk_path;
   let page_dimensions = Dimensions::new(
     Mm(210.0),
@@ -141,12 +146,17 @@ fn main() {
     match result {
       Ok(entry) => {
         if entry.file_type().is_some_and(|f| f.is_file()) {
+          let path = entry.path();
+          logger.log(format!(
+            "Generating pages for {}, index {i}",
+            path.display()
+          ));
           if let Err(err) = c2pdf_mutex.lock().unwrap().process_file(
-            entry.path(),
+            path,
             &highlight_config_mutex.lock().unwrap(),
             i,
           ) {
-            println!("ERROR: {}", err);
+            logger.log(format!("ERROR: {}", err));
           }
         }
       }

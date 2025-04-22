@@ -11,3 +11,4 @@ pub mod dimensions;
 pub mod font_loader;
 pub mod helpers;
 pub mod text_manipulation;
+mod logging;

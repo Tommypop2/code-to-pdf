@@ -47,3 +47,8 @@ lto = "fat"
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[profile.profile]
+inherits = "release"
+lto = "thin"
+debug = true

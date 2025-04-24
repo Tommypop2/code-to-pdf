@@ -19,6 +19,7 @@ name = "dc2pdf"
 path = "src/bin/dc2pdf.rs"
 [dependencies]
 argh = "0.1.13"
+crossbeam-channel = "0.5.15"
 fast-glob = "0.4.5"
 font-kit = { version = "0.14.2", optional = true }
 fontdue = "0.9.3"
@@ -38,4 +39,5 @@ thread_local = "1.1.8"
 two-face = "0.4.3"
 
 [features]
+default = ["font-loading"]
 font-loading = ["dep:font-kit"]

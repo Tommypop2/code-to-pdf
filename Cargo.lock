@@ -711,6 +711,7 @@ name = "code-to-pdf"
 version = "0.2.0"
 dependencies = [
  "argh",
+ "crossbeam-channel",
  "fast-glob",
  "font-kit",
  "fontdue 0.9.3",

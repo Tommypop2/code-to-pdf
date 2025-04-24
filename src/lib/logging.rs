@@ -2,7 +2,7 @@
 use std::{
   sync::{
     Arc, Mutex,
-    mpsc::{Receiver, Sender, channel},
+    mpsc::{Receiver, Sender},
   },
   thread::{self, JoinHandle},
 };
@@ -54,7 +54,7 @@ impl Logger {
 #[cfg(test)]
 mod tests {
   use super::*;
-
+  use std::sync::mpsc::channel;
   #[test]
   fn it_works() {
     let logger = Logger::new(channel());

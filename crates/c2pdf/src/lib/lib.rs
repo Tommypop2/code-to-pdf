@@ -10,5 +10,5 @@ pub mod code_to_pdf;
 pub mod dimensions;
 pub mod font_loader;
 pub mod helpers;
-pub mod text_manipulation;
 pub mod logging;
+pub mod text_manipulation;

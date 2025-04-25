@@ -1,19 +1,14 @@
 use argh::FromArgs;
-use c2pdf::code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};
+use c2pdf::code_to_pdf::CodeToPdf;
 use c2pdf::dimensions::Dimensions;
 use c2pdf::font_loader::load_font;
 use c2pdf::logging::Logger;
-use c2pdf::text_manipulation::TextWrapper;
 use core::f32;
-use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use printpdf::*;
 use rayon::prelude::*;
 use std::path::PathBuf;
-use std::sync::mpsc::channel;
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
-use std::{cmp::Ordering, fs::File};
-use thread_local::ThreadLocal;
+use std::fs::File;
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
 fn vec_from_string(s: &str) -> Result<StringVec, String> {
@@ -105,7 +100,7 @@ fn main() {
     args.page_text,
     &logger,
   );
-	doc_subset.lock().unwrap().to_document(&mut doc);
+  doc_subset.lock().unwrap().to_document(&mut doc);
   let num_pages = doc.pages.len();
   // let before_write = Instant::now();
   let f = File::create(args.out).unwrap();

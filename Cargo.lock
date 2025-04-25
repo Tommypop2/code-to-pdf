@@ -587,7 +587,6 @@ dependencies = [
  "code-to-pdf",
  "crossbeam-channel",
  "floem",
- "tokio",
 ]
 
 [[package]]

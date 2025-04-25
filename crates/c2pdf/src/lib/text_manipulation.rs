@@ -123,8 +123,7 @@ mod tests {
         .map(|x| x.0.clone())
         .collect::<Vec<String>>()
         .join("")
-        .replace(' ', "")
-        .replace('\n', ""),
+        .replace([' ', '\n'], ""),
       TEXT.replace(' ', "")
     );
   }

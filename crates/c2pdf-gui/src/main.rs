@@ -1,20 +1,15 @@
 use std::{
   cell::RefCell,
   fs::File,
-  mem,
   path::PathBuf,
-  sync::{
-    Arc, Mutex,
-    atomic::AtomicI32,
-    mpsc::{self, channel},
-  },
-  thread::{self, sleep},
-  time::{Duration, Instant},
+  sync::{Arc, Mutex},
+  thread::{self},
+  time::Instant,
 };
 
 use c2pdf::{
   ParsedFont, PdfDocument, PdfSaveOptions,
-  code_to_pdf::{CodeToPdf, DocumentSubset},
+  code_to_pdf::CodeToPdf,
   dimensions::Dimensions,
   font_loader,
   logging::{Logger, LoggerMessage},
@@ -23,7 +18,7 @@ use floem::{
   action::open_file,
   ext_event::create_signal_from_channel,
   prelude::*,
-  reactive::{Scope, SignalRead, SignalWrite, create_effect},
+  reactive::{SignalRead, create_effect},
 };
 #[derive(Clone)]
 enum JobStatus {
@@ -63,11 +58,8 @@ fn app_view() -> impl IntoView {
     let binding = logger_message.read();
     let message = &*binding.borrow();
     let message = if let Some(m) = message { m } else { return };
-    match message {
-      LoggerMessage::Complete => {
-        set_job_status.set(JobStatus::COMPLETE);
-      }
-      _ => {}
+    if let LoggerMessage::Complete = message {
+      set_job_status.set(JobStatus::COMPLETE);
     }
   });
   let start_time = RefCell::new(Instant::now());
@@ -77,7 +69,7 @@ fn app_view() -> impl IntoView {
       let result = thread_handle2.lock().unwrap().take().unwrap();
       let number_files_processed = result.join().unwrap();
       let time_taken = start_time.borrow().elapsed();
-      println!("Done!! in {:.2}s", time_taken.as_secs_f32());
+      println!("Done!! Processed {number_files_processed} files in {:.2}s", time_taken.as_secs_f32());
       set_job_status.set(JobStatus::STOPPED);
     }
     JobStatus::STOPPED => {
@@ -149,7 +141,7 @@ fn app_view() -> impl IntoView {
       let binding = logger_message.read();
       let message = &*binding.borrow();
       match message {
-        Some(LoggerMessage::Message(s)) => format!("{}", s),
+        Some(LoggerMessage::Message(s)) => s.to_string(),
         Some(LoggerMessage::Complete) => "Done!!".into(),
         _ => "".into(),
       }

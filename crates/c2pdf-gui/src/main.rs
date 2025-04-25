@@ -1,4 +1,5 @@
 use std::{
+  cell::RefCell,
   fs::File,
   mem,
   path::PathBuf,
@@ -8,7 +9,7 @@ use std::{
     mpsc::{self, channel},
   },
   thread::{self, sleep},
-  time::Duration,
+  time::{Duration, Instant},
 };
 
 use c2pdf::{
@@ -52,7 +53,7 @@ fn app_view() -> impl IntoView {
   let logger_message: floem::reactive::ReadSignal<Option<LoggerMessage>> =
     create_signal_from_channel(rx.clone());
 
-  let thread_handle: Arc<Mutex<Option<thread::JoinHandle<(Arc<Mutex<DocumentSubset>>, usize)>>>> =
+  let thread_handle: Arc<Mutex<Option<thread::JoinHandle<usize>>>> =
     Arc::new(Mutex::new(None));
   let thread_handle2 = thread_handle.clone();
   create_effect(move |_| {
@@ -64,8 +65,6 @@ fn app_view() -> impl IntoView {
         .unwrap_or("".to_string())
     );
   });
-  let doc = Arc::new(Mutex::new(PdfDocument::new("asd")));
-  let doc2 = doc.clone();
   create_effect(move |_| {
     let binding = logger_message.read();
     let message = &*binding.borrow();
@@ -77,34 +76,22 @@ fn app_view() -> impl IntoView {
       _ => {}
     }
   });
+  let start_time = RefCell::new(Instant::now());
   create_effect(move |_| match job_status.get() {
     JobStatus::COMPLETE => {
-      // Task is complete so can write result
+      // Task is complete so can join thread
       let result = thread_handle2.lock().unwrap().take().unwrap();
-      let (doc_subset, number_files_processed) = result.join().unwrap();
-      // Write the document. This unfortunately has to be done on the main thread :(
-      doc_subset
-        .lock()
-        .unwrap()
-        .to_document(&mut doc2.lock().unwrap());
-      let f = File::create(dir_path.get_untracked().unwrap().join("output.pdf")).unwrap();
-      let mut f = std::io::BufWriter::new(f);
-      println!("Saving...");
-      doc2
-        .lock()
-        .unwrap()
-        .save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
-      println!("Saving complete...");
-      // Replace document
-      _ = mem::replace(&mut *doc2.lock().unwrap(), PdfDocument::new("asd"));
-
+      let number_files_processed = result.join().unwrap();
+			let time_taken = start_time.borrow().elapsed();
+			println!("Done!! in {:.2}s", time_taken.as_secs_f32());
       set_job_status.set(JobStatus::STOPPED);
     }
     JobStatus::STOPPED => {
-      println!("Done!!");
+			// Do nothing in the stopped state
     }
     JobStatus::RUNNING => {
-      // Do nothing here
+      // Start job timer
+      *start_time.borrow_mut() = Instant::now();
     }
   });
   v_stack((
@@ -135,8 +122,6 @@ fn app_view() -> impl IntoView {
       } else {
         return;
       };
-      let font = ParsedFont::from_bytes(&bytes, 0, &mut vec![]).unwrap();
-      let font_id = doc.lock().unwrap().add_font(&font);
       let logger_for_thread = logger.clone();
       let path_for_thread = path.clone();
       set_job_status.set(JobStatus::RUNNING);
@@ -144,18 +129,25 @@ fn app_view() -> impl IntoView {
         .lock()
         .unwrap()
         .replace(std::thread::spawn(move || {
-          let res = CodeToPdf::run_parallel(
+          let mut doc = PdfDocument::new("doc");
+          let font = ParsedFont::from_bytes(&bytes, 0, &mut vec![]).unwrap();
+          let font_id = doc.add_font(&font);
+          let (doc_subset, number_files_processed) = CodeToPdf::run_parallel(
             font_id,
             &bytes,
-            path_for_thread,
+            path_for_thread.clone(),
             vec![],
             Dimensions::default(),
             12.0,
             None,
             &logger_for_thread,
           );
+          doc_subset.lock().unwrap().to_document(&mut doc);
+          let f = File::create(path_for_thread.join("output.pdf")).unwrap();
+          let mut f = std::io::BufWriter::new(f);
+          doc.save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
           logger_for_thread.send_raw_message(LoggerMessage::Complete);
-          res
+          number_files_processed
         }));
       // wasd.join();
     }),

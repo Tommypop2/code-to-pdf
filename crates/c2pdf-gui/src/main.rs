@@ -25,7 +25,6 @@ use floem::{
   prelude::*,
   reactive::{Scope, SignalRead, SignalWrite, create_effect},
 };
-use tokio::runtime::Runtime;
 #[derive(Clone)]
 enum JobStatus {
   // No job currently happening
@@ -36,11 +35,7 @@ enum JobStatus {
   COMPLETE,
 }
 fn main() {
-  let runtime = Runtime::new().expect("Couldn't start runtime");
-
-  // We must make it so that the main task is under the tokio runtime so that APIs like
-  // tokio::spawn work
-  runtime.block_on(async { tokio::task::block_in_place(|| floem::launch(app_view)) })
+  floem::launch(app_view);
 }
 
 fn app_view() -> impl IntoView {
@@ -53,8 +48,7 @@ fn app_view() -> impl IntoView {
   let logger_message: floem::reactive::ReadSignal<Option<LoggerMessage>> =
     create_signal_from_channel(rx.clone());
 
-  let thread_handle: Arc<Mutex<Option<thread::JoinHandle<usize>>>> =
-    Arc::new(Mutex::new(None));
+  let thread_handle: Arc<Mutex<Option<thread::JoinHandle<usize>>>> = Arc::new(Mutex::new(None));
   let thread_handle2 = thread_handle.clone();
   create_effect(move |_| {
     println!(
@@ -82,12 +76,12 @@ fn app_view() -> impl IntoView {
       // Task is complete so can join thread
       let result = thread_handle2.lock().unwrap().take().unwrap();
       let number_files_processed = result.join().unwrap();
-			let time_taken = start_time.borrow().elapsed();
-			println!("Done!! in {:.2}s", time_taken.as_secs_f32());
+      let time_taken = start_time.borrow().elapsed();
+      println!("Done!! in {:.2}s", time_taken.as_secs_f32());
       set_job_status.set(JobStatus::STOPPED);
     }
     JobStatus::STOPPED => {
-			// Do nothing in the stopped state
+      // Do nothing in the stopped state
     }
     JobStatus::RUNNING => {
       // Start job timer

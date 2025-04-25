@@ -8,6 +8,7 @@ use std::{
 };
 pub enum LoggerMessage {
   Message(String),
+	Complete,
   Abort,
 }
 #[derive(Clone)]
@@ -29,6 +30,7 @@ impl Logger {
         let msg = if let Ok(msg) = rx.recv() {
           match msg {
             LoggerMessage::Message(msg) => msg,
+						LoggerMessage::Complete => continue,
             LoggerMessage::Abort => break,
           }
         } else {
@@ -42,9 +44,7 @@ impl Logger {
       handle: Arc::new(Mutex::new(Some(handle))),
     }
   }
-  pub fn new_without_logging_thread(
-    sender: crossbeam_channel::Sender<LoggerMessage>
-  ) -> Logger {
+  pub fn new_without_logging_thread(sender: crossbeam_channel::Sender<LoggerMessage>) -> Logger {
     Logger {
       tx: sender,
       handle: Arc::new(Mutex::new(None)),
@@ -52,6 +52,9 @@ impl Logger {
   }
   pub fn log(&self, item: String) {
     self.tx.send(LoggerMessage::Message(item)).unwrap()
+  }
+  pub fn send_raw_message(&self, msg: LoggerMessage) {
+    self.tx.send(msg).unwrap()
   }
   /// Waits for all threads to finish
   pub fn finish(self) {

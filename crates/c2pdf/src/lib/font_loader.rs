@@ -24,7 +24,7 @@ fn load_font_system(name: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Er
     } else {
       return Err("Unable to load font data".into());
     };
-    return Ok(data);
+    Ok(data)
   }
 }
 /// Load font bytes from a specific path

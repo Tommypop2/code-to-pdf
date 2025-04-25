@@ -10,7 +10,6 @@ use std::{
   cmp::Ordering,
   path::PathBuf,
   sync::{Arc, Mutex},
-  time::Instant,
 };
 
 use code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};

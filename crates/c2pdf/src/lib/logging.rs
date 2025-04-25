@@ -2,13 +2,12 @@
 use std::{
   sync::{
     Arc, Mutex,
-    mpsc::{Receiver, Sender},
   },
   thread::{self, JoinHandle},
 };
 pub enum LoggerMessage {
   Message(String),
-	Complete,
+  Complete,
   Abort,
 }
 #[derive(Clone)]
@@ -30,7 +29,7 @@ impl Logger {
         let msg = if let Ok(msg) = rx.recv() {
           match msg {
             LoggerMessage::Message(msg) => msg,
-						LoggerMessage::Complete => continue,
+            LoggerMessage::Complete => continue,
             LoggerMessage::Abort => break,
           }
         } else {

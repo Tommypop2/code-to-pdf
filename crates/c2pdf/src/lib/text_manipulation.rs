@@ -47,6 +47,7 @@ pub fn split_into_lines_fontdue<F: Fn(usize) -> Pt>(
 }
 
 /// Handles wrapping text into multiple lines
+#[derive(Clone)]
 pub struct TextWrapper {
   rasterize_cache: HashMap<char, f32>,
   font: Font,

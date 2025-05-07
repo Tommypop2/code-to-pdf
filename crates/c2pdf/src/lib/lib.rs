@@ -15,6 +15,7 @@ use std::{
 
 use code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};
 use dimensions::Dimensions;
+use helpers::ProcessedText;
 use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use logging::Logger;
 use printpdf::FontId;
@@ -78,12 +79,14 @@ impl CodeToPdf {
 
     let doc_subset = Arc::new(Mutex::new(doc_subset));
     if let Some(threads) = threads {
-			// Build the global threadpool with the correct number of threads
+      // Build the global threadpool with the correct number of threads
       rayon::ThreadPoolBuilder::new()
         .num_threads(u8::from(threads) as usize)
         .build_global()
         .unwrap();
     }
+    let mut wrapper = TextWrapper::new(font_bytes, font_size);
+    let additional_text = page_text.and_then(|text| ProcessedText::new(text, &mut wrapper));
     walker.enumerate().par_bridge().for_each(|(i, result)| {
       // let mut doc = PdfDocument::new(&args.name);
       let c2pdf_mutex = local_c2pdf.get_or(|| {
@@ -91,8 +94,8 @@ impl CodeToPdf {
           doc_subset.clone(),
           font_id.clone(),
           page_dimensions.clone(),
-          TextWrapper::new(font_bytes, font_size),
-          page_text.clone(),
+          wrapper.clone(),
+          additional_text.clone(),
         )))
       });
       let highlight_config_mutex = local_highlighter_config.get_or(|| {

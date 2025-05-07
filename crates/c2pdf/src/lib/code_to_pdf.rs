@@ -22,7 +22,7 @@ use syntect::{
   parsing::SyntaxSet,
 };
 
-use crate::{dimensions::Dimensions, helpers::init_page, text_manipulation::TextWrapper};
+use crate::{dimensions::Dimensions, helpers::{init_page, ProcessedText}, text_manipulation::TextWrapper};
 
 /// Configuration struct for the highlighter ([`syntect`])
 ///
@@ -103,7 +103,7 @@ pub struct CodeToPdf {
   text_wrapper: TextWrapper,
   processed_file_count: usize,
   // Text to put at the top of every page
-  page_text: Option<String>,
+  page_text: Option<ProcessedText>,
 }
 impl CodeToPdf {
   /// Initialises a new [`CodeToPdf`]
@@ -112,7 +112,7 @@ impl CodeToPdf {
     font_id: FontId,
     page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
-    page_text: Option<String>,
+    page_text: Option<ProcessedText>,
   ) -> Self {
     Self {
       current_page_contents: vec![],
@@ -149,7 +149,7 @@ impl CodeToPdf {
       self.font_id.clone(),
       self.text_wrapper.font_size(),
       path,
-      self.page_text.as_deref(),
+      self.page_text.as_ref(),
       &mut self.text_wrapper,
     );
   }

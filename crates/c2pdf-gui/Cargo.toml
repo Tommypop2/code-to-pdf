@@ -3,6 +3,7 @@ name = "c2pdf-gui"
 version = "0.1.0"
 edition = "2024"
 
+publish = false
 [dependencies]
 crossbeam-channel = "0.5.15"
 floem = { version = "0.2.0", features = ["rfd-tokio"] }

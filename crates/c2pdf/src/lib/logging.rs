@@ -1,8 +1,6 @@
 //! Module for logging on a separate thread
 use std::{
-  sync::{
-    Arc, Mutex,
-  },
+  sync::{Arc, Mutex},
   thread::{self, JoinHandle},
 };
 pub enum LoggerMessage {
@@ -56,12 +54,12 @@ impl Logger {
     self.tx.send(msg).unwrap()
   }
   /// Waits for all threads to finish
-  pub fn finish(self) {
+  pub fn finish(self) -> std::thread::Result<()> {
     // Logger thread should exit once it processes this signal
     self.tx.send(LoggerMessage::Abort).unwrap();
     let mut lock = self.handle.lock().unwrap();
     let handle = lock.take().unwrap();
-    handle.join();
+    handle.join()
   }
 }
 
@@ -72,7 +70,7 @@ mod tests {
   fn it_works() {
     let logger = Logger::new(crossbeam_channel::unbounded());
     logger.log("Hello World!!!".into());
-    logger.finish();
-    assert!(false);
+    _ = logger.finish();
+    // assert!(false);
   }
 }

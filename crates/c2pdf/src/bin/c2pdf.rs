@@ -5,10 +5,9 @@ use c2pdf::font_loader::load_font;
 use c2pdf::logging::Logger;
 use core::f32;
 use printpdf::*;
-use rayon::prelude::*;
+use std::fs::File;
 use std::path::PathBuf;
 use std::time::Instant;
-use std::fs::File;
 // This makes `FromArgs` happy
 type StringVec = Vec<String>;
 fn vec_from_string(s: &str) -> Result<StringVec, String> {

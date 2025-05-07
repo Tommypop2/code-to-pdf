@@ -6,6 +6,7 @@ use c2pdf::logging::Logger;
 use core::f32;
 use printpdf::*;
 use std::fs::File;
+use std::num::NonZeroU8;
 use std::path::PathBuf;
 use std::time::Instant;
 // This makes `FromArgs` happy
@@ -65,6 +66,10 @@ struct Arguments {
   /// text to add to (the top of) every page
   #[argh(option)]
   page_text: Option<String>,
+
+  /// number of threads to use for processing
+  #[argh(option)]
+  threads: Option<NonZeroU8>,
 }
 fn main() {
   // Parse args
@@ -98,6 +103,7 @@ fn main() {
     args.font_size,
     args.page_text,
     &logger,
+    args.threads,
   );
   doc_subset.lock().unwrap().to_document(&mut doc);
   let num_pages = doc.pages.len();

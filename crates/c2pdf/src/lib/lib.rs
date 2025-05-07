@@ -8,6 +8,7 @@
 
 use std::{
   cmp::Ordering,
+  num::NonZeroU8,
   path::PathBuf,
   sync::{Arc, Mutex},
 };
@@ -43,6 +44,7 @@ impl CodeToPdf {
     font_size: f32,
     page_text: Option<String>,
     logger: &Logger,
+    threads: Option<NonZeroU8>,
   ) -> (Arc<Mutex<DocumentSubset>>, usize) {
     let doc_subset = DocumentSubset::default();
     let ss = two_face::syntax::extra_newlines();
@@ -75,7 +77,13 @@ impl CodeToPdf {
     let local_highlighter_config = ThreadLocal::<Arc<Mutex<HighlighterConfig>>>::new();
 
     let doc_subset = Arc::new(Mutex::new(doc_subset));
-
+    if let Some(threads) = threads {
+			// Build the global threadpool with the correct number of threads
+      rayon::ThreadPoolBuilder::new()
+        .num_threads(u8::from(threads) as usize)
+        .build_global()
+        .unwrap();
+    }
     walker.enumerate().par_bridge().for_each(|(i, result)| {
       // let mut doc = PdfDocument::new(&args.name);
       let c2pdf_mutex = local_c2pdf.get_or(|| {

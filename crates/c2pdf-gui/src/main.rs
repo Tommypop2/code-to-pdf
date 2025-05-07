@@ -127,6 +127,7 @@ fn app_view() -> impl IntoView {
             12.0,
             None,
             &logger_for_thread,
+						None
           );
           doc_subset.lock().unwrap().to_document(&mut doc);
           let f = File::create(path_for_thread.join("output.pdf")).unwrap();

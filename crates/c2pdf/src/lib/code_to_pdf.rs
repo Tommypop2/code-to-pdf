@@ -22,7 +22,11 @@ use syntect::{
   parsing::SyntaxSet,
 };
 
-use crate::{dimensions::Dimensions, helpers::{init_page, ProcessedText}, text_manipulation::TextWrapper};
+use crate::{
+  dimensions::Dimensions,
+  helpers::{ProcessedText, init_page},
+  text_manipulation::TextWrapper,
+};
 
 /// Configuration struct for the highlighter ([`syntect`])
 ///

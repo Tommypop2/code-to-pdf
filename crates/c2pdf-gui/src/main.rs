@@ -23,11 +23,11 @@ use floem::{
 #[derive(Clone)]
 enum JobStatus {
   // No job currently happening
-  STOPPED,
+  Stopped,
   // Thread is running
-  RUNNING,
+  Running,
   // Done, need to write result
-  COMPLETE,
+  Complete,
 }
 fn main() {
   floem::launch(app_view);
@@ -36,7 +36,7 @@ fn main() {
 fn app_view() -> impl IntoView {
   let w = floem::file::FileDialogOptions::new().select_directories();
   let (dir_path, set_dir_path) = create_signal::<Option<PathBuf>>(None);
-  let (job_status, set_job_status) = create_signal(JobStatus::STOPPED);
+  let (job_status, set_job_status) = create_signal(JobStatus::Stopped);
   let (tx, rx) = crossbeam_channel::unbounded();
   let logger = Logger::new_without_logging_thread(tx);
 
@@ -59,23 +59,26 @@ fn app_view() -> impl IntoView {
     let message = &*binding.borrow();
     let message = if let Some(m) = message { m } else { return };
     if let LoggerMessage::Complete = message {
-      set_job_status.set(JobStatus::COMPLETE);
+      set_job_status.set(JobStatus::Complete);
     }
   });
   let start_time = RefCell::new(Instant::now());
   create_effect(move |_| match job_status.get() {
-    JobStatus::COMPLETE => {
+    JobStatus::Complete => {
       // Task is complete so can join thread
       let result = thread_handle2.lock().unwrap().take().unwrap();
       let number_files_processed = result.join().unwrap();
       let time_taken = start_time.borrow().elapsed();
-      println!("Done!! Processed {number_files_processed} files in {:.2}s", time_taken.as_secs_f32());
-      set_job_status.set(JobStatus::STOPPED);
+      println!(
+        "Done!! Processed {number_files_processed} files in {:.2}s",
+        time_taken.as_secs_f32()
+      );
+      set_job_status.set(JobStatus::Stopped);
     }
-    JobStatus::STOPPED => {
+    JobStatus::Stopped => {
       // Do nothing in the stopped state
     }
-    JobStatus::RUNNING => {
+    JobStatus::Running => {
       // Start job timer
       *start_time.borrow_mut() = Instant::now();
     }
@@ -110,7 +113,7 @@ fn app_view() -> impl IntoView {
       };
       let logger_for_thread = logger.clone();
       let path_for_thread = path.clone();
-      set_job_status.set(JobStatus::RUNNING);
+      set_job_status.set(JobStatus::Running);
       thread_handle
         .lock()
         .unwrap()
@@ -127,7 +130,7 @@ fn app_view() -> impl IntoView {
             12.0,
             None,
             &logger_for_thread,
-						None
+            None,
           );
           doc_subset.lock().unwrap().to_document(&mut doc);
           let f = File::create(path_for_thread.join("output.pdf")).unwrap();

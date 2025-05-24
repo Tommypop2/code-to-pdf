@@ -314,6 +314,7 @@ impl CodeToPdf {
     } else {
       None
     };
+
     self.current_page_contents.push(Op::UseXobject {
       id: image_id.clone(),
       transform: XObjectTransform {

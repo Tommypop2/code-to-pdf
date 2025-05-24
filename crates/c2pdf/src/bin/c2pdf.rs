@@ -110,7 +110,18 @@ fn main() {
   // let before_write = Instant::now();
   let f = File::create(args.out).unwrap();
   let mut f = std::io::BufWriter::new(f);
-  doc.save_writer(&mut f, &PdfSaveOptions::default(), &mut vec![]);
+  doc.save_writer(
+    &mut f,
+    &PdfSaveOptions {
+      image_optimization: Some(ImageOptimizationOptions {
+        quality: Some(0.85),
+        max_image_size: None,
+        ..Default::default()
+      }),
+      ..Default::default()
+    },
+    &mut vec![],
+  );
   // println!("Written in {}", before_write.elapsed().as_micros());
   println!("Done!");
   println!(

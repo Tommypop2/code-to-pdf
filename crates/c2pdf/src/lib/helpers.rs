@@ -47,7 +47,7 @@ pub fn init_page(
     },
   ]);
   // Write additional text
-  if let Some(ref text) = additional_text {
+  if let Some(text) = additional_text {
     contents.extend_from_slice(&[
       Op::SetTextMatrix {
         matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),

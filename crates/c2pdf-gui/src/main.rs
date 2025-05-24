@@ -129,7 +129,7 @@ fn app_view() -> impl IntoView {
             Dimensions::default(),
             12.0,
             None,
-						true,
+            true,
             &logger_for_thread,
             None,
           );

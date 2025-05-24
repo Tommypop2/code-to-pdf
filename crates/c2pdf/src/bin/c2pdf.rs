@@ -34,8 +34,8 @@ struct Arguments {
   exclude: StringVec,
 
   /// whether to include the path at the top of each page
-	/// 
-	/// defaults to true
+  ///
+  /// defaults to true
   #[argh(option, default = "true")]
   include_path: bool,
 
@@ -108,7 +108,7 @@ fn main() {
     page_dimensions,
     args.font_size,
     args.page_text,
-		args.include_path,
+    args.include_path,
     &logger,
     args.threads,
   );

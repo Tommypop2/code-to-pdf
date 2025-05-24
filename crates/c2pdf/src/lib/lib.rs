@@ -44,6 +44,7 @@ impl CodeToPdf {
     page_dimensions: Dimensions,
     font_size: f32,
     page_text: Option<String>,
+    include_path: bool,
     logger: &Logger,
     threads: Option<NonZeroU8>,
   ) -> (Arc<Mutex<DocumentSubset>>, usize) {
@@ -96,6 +97,7 @@ impl CodeToPdf {
           page_dimensions.clone(),
           wrapper.clone(),
           additional_text.clone(),
+          include_path,
         )))
       });
       let highlight_config_mutex = local_highlighter_config.get_or(|| {

@@ -34,6 +34,7 @@ pub fn init_page(
   font_size: f32,
   path: &Path,
   additional_text: Option<&ProcessedText>,
+  include_path: bool,
   wrapper: &mut TextWrapper,
 ) {
   contents.extend_from_slice(&[
@@ -66,31 +67,33 @@ pub fn init_page(
       contents.push(Op::AddLineBreak);
     }
   }
-  contents.extend_from_slice(&[
-    Op::SetTextMatrix {
-      matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
-    },
-    // Write metadata
-    Op::SetTextCursor {
-      pos: Point {
-        x: page_dimensions.margin_left.into(),
-        y: (page_dimensions.height - Mm(7.5)).into(),
+  if include_path {
+    contents.extend_from_slice(&[
+      Op::SetTextMatrix {
+        matrix: TextMatrix::Translate(Pt(0.0), Pt(0.0)),
       },
-    },
-  ]);
-  let max_path_width = (page_dimensions.max_text_width()
-    - if let Some(text) = &additional_text {
-      Mm::from(Pt(text.width)) + Mm(5.0)
-    } else {
-      Mm(0.0)
-    })
-  .into_pt();
-  for (line, _) in wrapper.split_into_lines(&path.display().to_string(), |_| max_path_width) {
-    contents.push(Op::WriteText {
-      items: vec![TextItem::Text(line)],
-      font: font_id.clone(),
-    });
-    contents.push(Op::AddLineBreak);
+      // Write metadata
+      Op::SetTextCursor {
+        pos: Point {
+          x: page_dimensions.margin_left.into(),
+          y: (page_dimensions.height - Mm(7.5)).into(),
+        },
+      },
+    ]);
+    let max_path_width = (page_dimensions.max_text_width()
+      - if let Some(text) = &additional_text {
+        Mm::from(Pt(text.width)) + Mm(5.0)
+      } else {
+        Mm(0.0)
+      })
+    .into_pt();
+    for (line, _) in wrapper.split_into_lines(&path.display().to_string(), |_| max_path_width) {
+      contents.push(Op::WriteText {
+        items: vec![TextItem::Text(line)],
+        font: font_id.clone(),
+      });
+      contents.push(Op::AddLineBreak);
+    }
   }
 
   // Set cursor to main body

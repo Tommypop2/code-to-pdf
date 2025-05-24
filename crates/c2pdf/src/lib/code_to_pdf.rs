@@ -106,6 +106,7 @@ pub struct CodeToPdf {
   page_dimensions: Dimensions,
   text_wrapper: TextWrapper,
   processed_file_count: usize,
+  include_path: bool,
   // Text to put at the top of every page
   page_text: Option<ProcessedText>,
 }
@@ -117,6 +118,7 @@ impl CodeToPdf {
     page_dimensions: Dimensions,
     text_wrapper: TextWrapper,
     page_text: Option<ProcessedText>,
+    include_path: bool,
   ) -> Self {
     Self {
       current_page_contents: vec![],
@@ -126,6 +128,7 @@ impl CodeToPdf {
       text_wrapper,
       processed_file_count: 0,
       page_text,
+      include_path,
     }
   }
   /// Saves the current page contents to the document, and clears [`CodeToPdf::current_page_contents`]
@@ -154,6 +157,7 @@ impl CodeToPdf {
       self.text_wrapper.font_size(),
       path,
       self.page_text.as_ref(),
+      self.include_path,
       &mut self.text_wrapper,
     );
   }

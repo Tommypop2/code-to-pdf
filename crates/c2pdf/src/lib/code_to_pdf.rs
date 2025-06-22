@@ -12,6 +12,7 @@ use std::{
 };
 
 use ignore::Walk;
+use log::error;
 use printpdf::{
   FontId, Op, PdfDocument, PdfPage, Pt, Px, RawImage, TextItem, XObject, XObjectId,
   XObjectRotation, XObjectTransform, color,
@@ -359,11 +360,11 @@ impl CodeToPdf {
         Ok(entry) => {
           if entry.file_type().is_some_and(|f| f.is_file()) {
             if let Err(err) = self.process_file(entry.path(), &highlighter_config, 0) {
-              println!("ERROR: {}", err)
+              error!("ERROR: {}", err)
             }
           }
         }
-        Err(err) => println!("ERROR: {}", err),
+        Err(err) => error!("ERROR: {}", err),
       }
     }
   }

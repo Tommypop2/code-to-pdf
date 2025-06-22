@@ -1,0 +1,1 @@
+sudo cargo flamegraph --bin c2pdf --profile profile -- ./

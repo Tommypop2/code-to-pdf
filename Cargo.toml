@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*"]
 
 [profile.release]
-# lto = "fat"
+lto = "thin"
 
 # The profile that 'dist' will build with
 [profile.dist]

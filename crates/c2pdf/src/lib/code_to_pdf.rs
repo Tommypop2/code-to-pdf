@@ -91,6 +91,7 @@ fn to_rgb(c: Color) -> color::Rgb {
     icc_profile: None,
   }
 }
+
 /// Main struct for generating PDFs.
 /// It handles almost the entire process of reading and highlighting code,
 /// as well as actually writing it to the PDF

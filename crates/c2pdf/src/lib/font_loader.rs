@@ -35,7 +35,7 @@ fn load_font_path(path: String) -> Result<Arc<Vec<u8>>, Box<dyn std::error::Erro
 }
 /// Loads bytes from bundled font
 fn bundled_font_bytes() -> Arc<Vec<u8>> {
-  let bytes = include_bytes!("./fonts/Helvetica.ttf").to_vec();
+  let bytes = include_bytes!("../../fonts/Helvetica.ttf").to_vec();
   Arc::new(bytes)
 }
 fn is_path(s: &str) -> bool {

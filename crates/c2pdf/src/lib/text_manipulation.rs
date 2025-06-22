@@ -105,7 +105,7 @@ impl TextWrapper {
 mod tests {
   use super::*;
 
-  const FONT_BYTES: &[u8] = include_bytes!("./fonts/Helvetica.ttf") as &[u8];
+  const FONT_BYTES: &[u8] = include_bytes!("../../fonts/Helvetica.ttf") as &[u8];
   const TEXT: &str = "Hello World!! This is a vaguely long string to test string splitting!";
   #[test]
   fn splitting_lines() {

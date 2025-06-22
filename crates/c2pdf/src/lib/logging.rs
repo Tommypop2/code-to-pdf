@@ -3,11 +3,22 @@ use std::{
   sync::{Arc, Mutex},
   thread::{self, JoinHandle},
 };
+
+/// Message for the logger
+///
+/// This includes the [`LoggerMessage::Complete`] and [`LoggerMessage::Abort`] signals, as well as [`LoggerMessage::Message`], which contains a message to log
 pub enum LoggerMessage {
+  /// Message to log
   Message(String),
+  /// Complete signal
   Complete,
+  /// Abort signal
   Abort,
 }
+
+/// Main logger struct
+/// 
+/// Allows for logging to stdout from a separate thread
 #[derive(Clone)]
 pub struct Logger {
   tx: crossbeam_channel::Sender<LoggerMessage>,
@@ -15,6 +26,7 @@ pub struct Logger {
 }
 
 impl Logger {
+  /// Creates a new [`Logger`]
   pub fn new(
     channel: (
       crossbeam_channel::Sender<LoggerMessage>,
@@ -41,15 +53,18 @@ impl Logger {
       handle: Arc::new(Mutex::new(Some(handle))),
     }
   }
+  /// Creates a new logger without creating a logging thread
   pub fn new_without_logging_thread(sender: crossbeam_channel::Sender<LoggerMessage>) -> Logger {
     Logger {
       tx: sender,
       handle: Arc::new(Mutex::new(None)),
     }
   }
+  /// Logs a string
   pub fn log_message(&self, item: String) {
-    self.tx.send(LoggerMessage::Message(item)).unwrap()
+    self.send_raw_message(LoggerMessage::Message(item));
   }
+  /// Sends a raw message to the logger thread
   pub fn send_raw_message(&self, msg: LoggerMessage) {
     self.tx.send(msg).unwrap()
   }

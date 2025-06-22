@@ -82,11 +82,6 @@ impl DocumentSubset {
     });
     doc.pages = pages.into_iter().map(|f| f.0).collect();
   }
-  // pub fn add_font(&mut self, font: &ParsedFont) -> FontId {
-  //     let id = FontId::new();
-  //     self.font_map.lock().unwrap().insert(id.clone(), font.clone());
-  //     id
-  // }
 }
 fn to_rgb(c: Color) -> color::Rgb {
   color::Rgb {

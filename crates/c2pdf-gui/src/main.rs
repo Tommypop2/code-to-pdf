@@ -84,7 +84,6 @@ fn app_view() -> impl IntoView {
     }
   });
   v_stack((
-    // v_stack(()),
     button("Open File Picker").action(move || {
       open_file(w.clone(), move |f| {
         if let Some(file) = f {
@@ -140,7 +139,6 @@ fn app_view() -> impl IntoView {
           logger_for_thread.send_raw_message(LoggerMessage::Complete);
           number_files_processed
         }));
-      // wasd.join();
     }),
     label(move || {
       let binding = logger_message.read();

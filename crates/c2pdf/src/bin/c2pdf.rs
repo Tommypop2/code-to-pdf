@@ -77,6 +77,10 @@ struct Arguments {
   /// number of threads to use for processing
   #[argh(option)]
   threads: Option<NonZeroU8>,
+
+  /// disable logging
+  #[argh(switch)]
+  no_log: bool,
 }
 fn main() {
   // Parse args
@@ -84,7 +88,11 @@ fn main() {
   // Set up logger
   let logger = Box::leak(Box::new(Logger::new(crossbeam_channel::unbounded())));
   log::set_logger(logger)
-    .map(|()| log::set_max_level(log::LevelFilter::Info))
+    .map(|()| {
+      if !args.no_log {
+        log::set_max_level(log::LevelFilter::Trace)
+      }
+    })
     .expect("should be able to set logger");
   let path = args.walk_path;
   let page_dimensions = Dimensions::new(

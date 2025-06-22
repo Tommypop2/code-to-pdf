@@ -17,7 +17,7 @@ pub enum LoggerMessage {
 }
 
 /// Main logger struct
-/// 
+///
 /// Allows for logging to stdout from a separate thread
 #[derive(Clone)]
 pub struct Logger {
@@ -79,7 +79,11 @@ impl Logger {
 }
 impl log::Log for Logger {
   fn enabled(&self, metadata: &log::Metadata) -> bool {
-    metadata.level() <= log::Level::Info
+    if metadata.target() == "c2pdf" {
+      metadata.level() <= log::Level::Trace
+    } else {
+      false
+    }
   }
   fn log(&self, record: &log::Record) {
     if self.enabled(record.metadata()) {

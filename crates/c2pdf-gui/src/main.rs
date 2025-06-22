@@ -129,7 +129,6 @@ fn app_view() -> impl IntoView {
             12.0,
             None,
             true,
-            &logger_for_thread,
             None,
           );
           doc_subset.lock().unwrap().to_document(&mut doc);

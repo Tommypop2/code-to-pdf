@@ -24,6 +24,7 @@ fast-glob = "0.4.5"
 font-kit = { version = "0.14.2", optional = true }
 fontdue = "0.9.3"
 ignore = "0.4.23"
+log = "0.4.27"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
 # printpdf = { path = "../printpdf", default-features = false }
 printpdf = { version="0.8.2", default-features = false, features = [

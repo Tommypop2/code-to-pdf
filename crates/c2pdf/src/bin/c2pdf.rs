@@ -81,7 +81,10 @@ fn main() {
   // Parse args
   let args: Arguments = argh::from_env();
   // Set up logger
-  let logger = Logger::new(crossbeam_channel::unbounded());
+  let logger = Box::leak(Box::new(Logger::new(crossbeam_channel::unbounded())));
+  log::set_logger(logger)
+    .map(|()| log::set_max_level(log::LevelFilter::Info))
+    .expect("should be able to set logger");
   let path = args.walk_path;
   let page_dimensions = Dimensions::new(
     Mm(210.0),
@@ -109,7 +112,6 @@ fn main() {
     args.font_size,
     args.page_text,
     args.include_path,
-    &logger,
     args.threads,
   );
   doc_subset.lock().unwrap().to_document(&mut doc);

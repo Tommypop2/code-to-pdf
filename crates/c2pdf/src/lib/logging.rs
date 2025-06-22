@@ -47,7 +47,7 @@ impl Logger {
       handle: Arc::new(Mutex::new(None)),
     }
   }
-  pub fn log(&self, item: String) {
+  pub fn log_message(&self, item: String) {
     self.tx.send(LoggerMessage::Message(item)).unwrap()
   }
   pub fn send_raw_message(&self, msg: LoggerMessage) {
@@ -62,15 +62,27 @@ impl Logger {
     handle.join()
   }
 }
+impl log::Log for Logger {
+  fn enabled(&self, metadata: &log::Metadata) -> bool {
+    metadata.level() <= log::Level::Info
+  }
+  fn log(&self, record: &log::Record) {
+    if self.enabled(record.metadata()) {
+      self.log_message(record.args().to_string());
+    }
+  }
 
+  fn flush(&self) {}
+}
 #[cfg(test)]
 mod tests {
+  use log::info;
+
   use super::*;
   #[test]
   fn it_works() {
     let logger = Logger::new(crossbeam_channel::unbounded());
-    logger.log("Hello World!!!".into());
+    info!("Hello world!!");
     _ = logger.finish();
-    // assert!(false);
   }
 }

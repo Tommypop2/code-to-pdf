@@ -17,7 +17,7 @@ use code_to_pdf::{CodeToPdf, DocumentSubset, HighlighterConfig};
 use dimensions::Dimensions;
 use helpers::ProcessedText;
 use ignore::{WalkBuilder, overrides::OverrideBuilder};
-use logging::Logger;
+use log::{error, info};
 use printpdf::FontId;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use text_manipulation::TextWrapper;
@@ -45,7 +45,6 @@ impl CodeToPdf {
     font_size: f32,
     page_text: Option<String>,
     include_path: bool,
-    logger: &Logger,
     threads: Option<NonZeroU8>,
   ) -> (Arc<Mutex<DocumentSubset>>, usize) {
     let doc_subset = DocumentSubset::default();
@@ -111,16 +110,13 @@ impl CodeToPdf {
         Ok(entry) => {
           if entry.file_type().is_some_and(|f| f.is_file()) {
             let path = entry.path();
-            logger.log(format!(
-              "Generating pages for {}, index {i}",
-              path.display()
-            ));
+            info!("Generating pages for {}, index {i}", path.display());
             if let Err(err) = c2pdf_mutex.lock().unwrap().process_file(
               path,
               &highlight_config_mutex.lock().unwrap(),
               i,
             ) {
-              logger.log(format!("ERROR: {}", err));
+              error!("ERROR: {}", err);
             }
           }
         }

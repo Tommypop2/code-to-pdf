@@ -4,6 +4,7 @@ use c2pdf::dimensions::Dimensions;
 use c2pdf::font_loader::load_font;
 use c2pdf::logging::Logger;
 use core::f32;
+use log::{error, info};
 use printpdf::*;
 use std::fs::File;
 use std::num::NonZeroU8;
@@ -97,7 +98,7 @@ fn main() {
   let mut doc = PdfDocument::new(&args.name);
   let (font_bytes, used_bundled) = load_font(args.font);
   if used_bundled {
-    eprintln!("Unable to load provided font")
+    error!("Unable to load provided font")
   }
   let font_bytes = &*font_bytes;
   let font = ParsedFont::from_bytes(font_bytes, 0, &mut vec![]).unwrap();
@@ -132,8 +133,8 @@ fn main() {
     &mut vec![],
   );
   // println!("Written in {}", before_write.elapsed().as_micros());
-  println!("Done!");
-  println!(
+  info!("Done!");
+  info!(
     "Processed {} files and generated {} pages in {} seconds",
     processed_file_count,
     num_pages,

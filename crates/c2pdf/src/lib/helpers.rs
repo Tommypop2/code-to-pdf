@@ -38,6 +38,7 @@ pub fn init_page(
   wrapper: &mut TextWrapper,
 ) {
   contents.extend_from_slice(&[
+    Op::StartTextSection,
     Op::SetLineHeight {
       lh: Pt(font_size * 1.2),
     },

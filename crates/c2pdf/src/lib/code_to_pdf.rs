@@ -130,6 +130,7 @@ impl CodeToPdf {
   }
   /// Saves the current page contents to the document, and clears [`CodeToPdf::current_page_contents`]
   fn save_page(&mut self, index: usize) {
+    self.current_page_contents.push(Op::EndTextSection);
     let contents = std::mem::take(&mut self.current_page_contents);
     let page = PdfPage::new(
       self.page_dimensions.width,

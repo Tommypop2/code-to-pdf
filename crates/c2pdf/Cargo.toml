@@ -6,7 +6,6 @@ repository = "https://github.com/Tommypop2/code-to-pdf"
 license = "MIT"
 description = "Generates a syntax-highlighted PDF of your source code"
 readme = "../../README.md"
-include = ["src/*", "CHANGELOG.md"]
 [lib]
 name = "c2pdf"
 path = "src/lib/lib.rs"

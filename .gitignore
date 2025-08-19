@@ -2,6 +2,5 @@
 *.pdf
 test_folder
 *.jpg
-*.png
 *test.*
 generated

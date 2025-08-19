@@ -1,3 +1,5 @@
+<img src="./assets/logo.png" width="320" />
+
 # code-to-pdf
 
 Converts a folder of source code to a fully syntax-highlighted PDF

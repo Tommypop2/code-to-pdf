@@ -22,7 +22,7 @@ impl ProcessedText {
       .reduce(f32::max)?;
     Some(Self { text, width })
   }
-  fn lines(&self) -> Lines {
+  fn lines<'a>(&'a self) -> Lines<'a> {
     self.text.lines()
   }
 }

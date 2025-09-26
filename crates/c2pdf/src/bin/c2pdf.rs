@@ -36,7 +36,7 @@ struct Arguments {
 
   /// whether to include the path at the top of each page
   ///
-  /// defaults to true
+  /// (defaults to true)
   #[argh(option, default = "true")]
   include_path: bool,
 
@@ -81,6 +81,10 @@ struct Arguments {
   /// disable logging
   #[argh(switch)]
   no_log: bool,
+
+  /// image quality: value between 0.0 and 1.0 (defaults to 0.85)
+  #[argh(option, default = "0.85")]
+  image_quality: f32,
 }
 fn main() {
   // Parse args
@@ -132,7 +136,7 @@ fn main() {
     &mut f,
     &PdfSaveOptions {
       image_optimization: Some(ImageOptimizationOptions {
-        quality: Some(0.85),
+        quality: Some(args.image_quality),
         max_image_size: None,
         ..Default::default()
       }),

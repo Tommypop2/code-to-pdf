@@ -41,19 +41,30 @@ fn bundled_font_bytes() -> Arc<Vec<u8>> {
 fn is_path(s: &str) -> bool {
   PathBuf::from(s).extension().is_some() || s.len() > 31 || s.starts_with('.')
 }
+/// Details on how the requested font was loaded
+pub enum FontLoaded {
+  /// Successfully loaded provided font
+  SuccessProvided,
+  /// Failed loading provided font
+  FailProvided,
+  /// No font provided, so using font embedded in binary
+  NoneProvided,
+}
 /// Loads a given font - falling back to the bundled font if loading from the system, or from the given path fails
-pub fn load_font(name_or_path: Option<String>) -> (Arc<Vec<u8>>, bool) {
-  let data = name_or_path.and_then(|name_or_path| {
-    if is_path(&name_or_path) {
-      load_font_path(name_or_path)
+pub fn load_font(name_or_path: Option<String>) -> (Arc<Vec<u8>>, FontLoaded) {
+  if let Some(name_or_path) = name_or_path {
+    if let Ok(data) = {
+      if is_path(&name_or_path) {
+        load_font_path(name_or_path)
+      } else {
+        load_font_system(name_or_path)
+      }
+    } {
+      (data, FontLoaded::SuccessProvided)
     } else {
-      load_font_system(name_or_path)
+      (bundled_font_bytes(), FontLoaded::FailProvided)
     }
-    .ok()
-  });
-
-  match data {
-    Some(d) => (d, false),
-    None => (bundled_font_bytes(), true),
+  } else {
+    (bundled_font_bytes(), FontLoaded::NoneProvided)
   }
 }

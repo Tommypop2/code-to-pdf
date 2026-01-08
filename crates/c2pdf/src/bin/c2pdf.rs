@@ -108,8 +108,8 @@ fn main() {
     Mm(args.margin_right),
   );
   let mut doc = PdfDocument::new(&args.name);
-  let (font_bytes, used_bundled) = load_font(args.font);
-  if used_bundled {
+  let (font_bytes, font_loaded) = load_font(args.font);
+  if let c2pdf::font_loader::FontLoaded::FailProvided = font_loaded {
     error!("Unable to load provided font")
   }
   let font_bytes = &*font_bytes;

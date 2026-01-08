@@ -1,6 +1,6 @@
 [package]
 name = "code-to-pdf"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 repository = "https://github.com/Tommypop2/code-to-pdf"
 license = "MIT"

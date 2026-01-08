@@ -20,24 +20,24 @@ path = "src/bin/dc2pdf.rs"
 [dependencies]
 argh = "0.1.13"
 crossbeam-channel = "0.5.15"
-fast-glob = "0.4.5"
-font-kit = { version = "0.14.2", optional = true }
+fast-glob = "1.0.0"
+font-kit = { version = "0.14.3", optional = true }
 fontdue = "0.9.3"
-ignore = "0.4.23"
-log = "0.4.27"
+ignore = "0.4.25"
+log = "0.4.29"
 # printpdf = { git = "https://github.com/fschutt/printpdf", default-features = false}
 # printpdf = { path = "../printpdf", default-features = false }
-printpdf = { version="0.8.2", default-features = false, features = [
+printpdf = { version = "0.8.2", default-features = false, features = [
 	"jpeg",
 	"png",
 	"ico",
 	"bmp",
 	"webp",
 ] }
-rayon = "1.10.0"
-syntect = "5.2.0"
-thread_local = "1.1.8"
-two-face = "0.4.3"
+rayon = "1.11.0"
+syntect = "5.3.0"
+thread_local = "1.1.9"
+two-face = "0.5.1"
 
 [features]
 default = ["font-loading"]

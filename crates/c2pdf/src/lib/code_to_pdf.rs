@@ -359,10 +359,10 @@ impl CodeToPdf {
     for result in walker {
       match result {
         Ok(entry) => {
-          if entry.file_type().is_some_and(|f| f.is_file()) {
-            if let Err(err) = self.process_file(entry.path(), &highlighter_config, 0) {
-              error!("ERROR: {}", err)
-            }
+          if entry.file_type().is_some_and(|f| f.is_file())
+            && let Err(err) = self.process_file(entry.path(), &highlighter_config, 0)
+          {
+            error!("ERROR: {}", err)
           }
         }
         Err(err) => error!("ERROR: {}", err),

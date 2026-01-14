@@ -229,13 +229,13 @@ impl CodeToPdf {
           });
           prev_colour = text_colour;
         }
-        // Split into lines, with the length of the first line being the length remaining on the current line
+        // Split region into multiple lines if it is too long to fit on the current line
         let lines = self.text_wrapper.split_into_lines(text, |i| match i {
           0 => Pt(line_width_remaining),
           _ => self.page_dimensions.max_text_width().into_pt(),
         });
         match lines.len() {
-          // If only a single line, then no new lines are going to be made (as we're processing a region here)
+          // If only a single line, then no new lines are going to be made (as we're processing a single region here)
           1 => {
             self.current_page_contents.push(Op::WriteText {
               items: vec![TextItem::Text(

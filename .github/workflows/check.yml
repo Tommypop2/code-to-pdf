@@ -9,8 +9,10 @@ jobs:
     steps:
       - name: Install libfontconfig1-dev
         run: sudo apt update && sudo apt install libfontconfig1-dev
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/bin/

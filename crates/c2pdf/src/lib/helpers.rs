@@ -42,9 +42,9 @@ pub fn init_page(
     Op::SetLineHeight {
       lh: Pt(font_size * 1.2),
     },
-    Op::SetFontSize {
+    Op::SetFont {
       size: Pt(font_size),
-      font: font_id.clone(),
+      font: printpdf::PdfFontHandle::External(font_id.clone()),
     },
   ]);
   // Write additional text
@@ -61,9 +61,8 @@ pub fn init_page(
       },
     ]);
     for line in text.lines() {
-      contents.push(Op::WriteText {
+      contents.push(Op::ShowText {
         items: vec![TextItem::Text(line.to_string())],
-        font: font_id.clone(),
       });
       contents.push(Op::AddLineBreak);
     }
@@ -89,9 +88,8 @@ pub fn init_page(
       })
     .into_pt();
     for (line, _) in wrapper.split_into_lines(&path.display().to_string(), |_| max_path_width) {
-      contents.push(Op::WriteText {
+      contents.push(Op::ShowText {
         items: vec![TextItem::Text(line)],
-        font: font_id.clone(),
       });
       contents.push(Op::AddLineBreak);
     }

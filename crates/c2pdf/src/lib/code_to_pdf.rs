@@ -237,13 +237,12 @@ impl CodeToPdf {
         match lines.len() {
           // If only a single line, then no new lines are going to be made (as we're processing a single region here)
           1 => {
-            self.current_page_contents.push(Op::WriteText {
+            self.current_page_contents.push(Op::ShowText {
               items: vec![TextItem::Text(
                 text
                   .trim_end_matches(|x| (x == '\n') | (x == '\r'))
                   .to_string(),
               )],
-              font: self.font_id.clone(),
             });
             line_width += text_width;
           }
@@ -257,9 +256,8 @@ impl CodeToPdf {
               }
               first = false;
               line_width += width;
-              self.current_page_contents.push(Op::WriteText {
+              self.current_page_contents.push(Op::ShowText {
                 items: vec![TextItem::Text(l)],
-                font: self.font_id.clone(),
               });
               self.increment_line_count(&mut line_count, path, index, &mut has_added_text);
             }

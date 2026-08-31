@@ -26,7 +26,7 @@ fn parse_sections(page: &PdfPage) -> Sections {
         }
       }
       // Op::SetTextCursor { pos } => {}
-      Op::WriteText { items, font: _font } => {
+      Op::ShowText { items } => {
         for item in items {
           if let TextItem::Text(text) = item {
             let trimmed = text.trim_matches(['\r', '\n']);
